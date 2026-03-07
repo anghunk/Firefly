@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue';
 import { Command } from '@tauri-apps/plugin-shell';
-import { PhMagnifyingGlass, PhPlus, PhX } from '@phosphor-icons/vue';
 import { useCategoryStore, useNoteStore } from '../../stores';
 import NoteList from '../note/NoteList.vue';
 import NoteForm from '../note/NoteForm.vue';

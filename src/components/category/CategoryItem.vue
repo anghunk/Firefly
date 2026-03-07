@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { PhFolderSimple, PhPencilSimple, PhTrash } from '@phosphor-icons/vue';
 import type { Category } from '../../types';
 import { ContextMenu, ContextMenuItem } from '../common';
 

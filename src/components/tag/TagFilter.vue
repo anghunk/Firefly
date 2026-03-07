@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { PhTag } from '@phosphor-icons/vue';
-
 defineProps<{
   tags: string[];
   selectedTags: string[];

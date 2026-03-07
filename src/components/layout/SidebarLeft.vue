@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
-import { PhGear, PhFolderPlus } from '@phosphor-icons/vue';
 import { useCategoryStore, useSettingsStore } from '../../stores';
 import CategoryList from '../category/CategoryList.vue';
 import CategoryForm from '../category/CategoryForm.vue';
