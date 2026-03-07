@@ -197,7 +197,7 @@ function setTheme(theme: 'light' | 'dark' | 'system') {
                 </Button>
               </div>
               <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                笔记将存储在此目录下的 .firefly 文件夹中
+                请选择你想要使用的笔记目录
               </p>
             </div>
           </div>
@@ -206,7 +206,7 @@ function setTheme(theme: 'light' | 'dark' | 'system') {
           <div v-show="activeTab === 'about'" class="space-y-4">
             <div>
               <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100">萤火 - Firefly</h3>
-              <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">版本 {{ pkg.version }}</p>
+              <a href="https://github.com/anghunk/Firefly" target="_blank" class="text-sm text-gray-500 dark:text-gray-400 mt-1 hover:underline">v {{ pkg.version }}</a>
               <p class="text-sm text-gray-500 dark:text-gray-400 mt-4">捕捉思维的微光。</p>
               <p class="text-sm text-gray-500 dark:text-gray-400 mt-4">基于 Tauri 构建的一款轻量、本地优先的笔记工具。无需联网，无需账号，让灵感如萤火般在本地静谧发光。在最私密的安全感中，汇聚你的知识森林。</p>
             </div>

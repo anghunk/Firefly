@@ -67,7 +67,7 @@ const tooltipText = `创建时间：${formatDateTime(props.note.createdAt)}
     @contextmenu="handleContextMenu"
   >
     <PhFileText :size="16" class="text-gray-400 flex-shrink-0" />
-    <div class="text-sm truncate" :title="tooltipText">{{ note.title }}</div>
+    <div class="text-base truncate" :title="tooltipText">{{ note.title }}</div>
   </div>
 
   <!-- Context Menu -->

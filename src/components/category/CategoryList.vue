@@ -19,27 +19,22 @@ const draggedId = ref<string | null>(null);
 const dragOverId = ref<string | null>(null);
 
 function handleDragStart(id: string) {
-  console.log('[CategoryList] handleDragStart:', id);
   draggedId.value = id;
 }
 
 function handleDragEnd() {
-  console.log('[CategoryList] handleDragEnd');
   draggedId.value = null;
   dragOverId.value = null;
 }
 
 function handleDragOver(id: string) {
-  console.log('[CategoryList] handleDragOver called, id:', id, 'draggedId:', draggedId.value);
   if (draggedId.value && draggedId.value !== id) {
     dragOverId.value = id;
   }
 }
 
 function handleDrop(toId: string) {
-  console.log('[CategoryList] handleDrop:', toId, 'draggedId:', draggedId.value);
   if (draggedId.value && draggedId.value !== toId) {
-    console.log('[CategoryList] emitting reorder:', draggedId.value, '->', toId);
     emit('reorder', draggedId.value, toId);
   }
   draggedId.value = null;
@@ -52,7 +47,7 @@ function handleDragLeave() {
 </script>
 
 <template>
-  <div class="py-1">
+  <div class="pb-1">
     <CategoryItem
       v-for="category in categories"
       :key="category.id"

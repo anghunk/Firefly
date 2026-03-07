@@ -49,23 +49,14 @@ function handleDelete() {
 }
 
 function handleDragStart(e: DragEvent) {
-  console.log('[CategoryItem] dragStart:', props.category.name, props.category.id);
   if (e.dataTransfer) {
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', props.category.id);
-  }
-  // Add drag image
-  if (e.target) {
-    const target = e.target as HTMLElement;
-    setTimeout(() => {
-      target.style.opacity = '0.5';
-    }, 0);
   }
   emit('dragStart', props.category.id);
 }
 
 function handleDragEnd(e: DragEvent) {
-  console.log('[CategoryItem] dragEnd:', props.category.name);
   if (e.target) {
     const target = e.target as HTMLElement;
     target.style.opacity = '';
@@ -75,11 +66,16 @@ function handleDragEnd(e: DragEvent) {
 
 function handleDragEnter(e: DragEvent) {
   e.preventDefault();
-  console.log('[CategoryItem] dragEnter:', props.category.name);
-  if (e.dataTransfer) {
-    e.dataTransfer.dropEffect = 'move';
+  // Only emit if entering from outside this element
+  const currentTarget = e.currentTarget as HTMLElement;
+  const relatedTarget = e.relatedTarget as HTMLElement | null;
+  // If relatedTarget is null or not inside currentTarget, we're entering from outside
+  if (!relatedTarget || !currentTarget.contains(relatedTarget)) {
+    if (e.dataTransfer) {
+      e.dataTransfer.dropEffect = 'move';
+    }
+    emit('dragOver', props.category.id);
   }
-  emit('dragOver', props.category.id);
 }
 
 function handleDragOver(e: DragEvent) {
@@ -90,10 +86,11 @@ function handleDragOver(e: DragEvent) {
 }
 
 function handleDragLeave(e: DragEvent) {
-  // Only fire if leaving the element entirely
-  const target = e.target as HTMLElement;
-  const relatedTarget = e.relatedTarget as HTMLElement;
-  if (!target.contains(relatedTarget)) {
+  // Only fire if leaving the element entirely (not just entering a child)
+  const currentTarget = e.currentTarget as HTMLElement;
+  const relatedTarget = e.relatedTarget as HTMLElement | null;
+  // If relatedTarget is null or not inside currentTarget, we're leaving the element
+  if (!relatedTarget || !currentTarget.contains(relatedTarget)) {
     emit('dragLeave');
   }
 }
@@ -101,7 +98,6 @@ function handleDragLeave(e: DragEvent) {
 function handleDrop(e: DragEvent) {
   e.preventDefault();
   e.stopPropagation();
-  console.log('[CategoryItem] drop on:', props.category.name, props.category.id);
   emit('drop', props.category.id);
 }
 </script>
@@ -128,7 +124,7 @@ function handleDrop(e: DragEvent) {
   >
     <div class="flex items-center gap-2 min-w-0 pointer-events-none">
       <PhFolderSimple :size="16" class="text-gray-400 flex-shrink-0" />
-      <span class="text-sm truncate">{{ category.name }}</span>
+      <span class="text-base truncate">{{ category.name }}</span>
       <span v-if="category.noteCount > 0" class="text-xs text-gray-400 flex-shrink-0">
         {{ category.noteCount }}
       </span>

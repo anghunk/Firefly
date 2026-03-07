@@ -139,14 +139,19 @@ export const useCategoryStore = defineStore('category', () => {
 
     // Reorder locally first for immediate UI feedback
     const [removed] = categories.value.splice(fromIndex, 1);
-    categories.value.splice(toIndex, 0, removed);
+    // After removal, if we were moving forward, the target index shifts left by 1
+    const insertIndex = fromIndex < toIndex ? toIndex - 1 : toIndex;
+    categories.value.splice(insertIndex, 0, removed);
 
-    // Update order list
-    const [orderRemoved] = categoryOrder.value.splice(
-      categoryOrder.value.indexOf(fromId),
-      1
-    );
-    categoryOrder.value.splice(toIndex, 0, orderRemoved);
+    // Update order list - find positions in categoryOrder array (not categories array)
+    const orderFromIndex = categoryOrder.value.indexOf(fromId);
+    const orderToIndex = categoryOrder.value.indexOf(toId);
+
+    if (orderFromIndex !== -1 && orderToIndex !== -1) {
+      const [orderRemoved] = categoryOrder.value.splice(orderFromIndex, 1);
+      const orderInsertIndex = orderFromIndex < orderToIndex ? orderToIndex - 1 : orderToIndex;
+      categoryOrder.value.splice(orderInsertIndex, 0, orderRemoved);
+    }
 
     // Persist to backend
     try {

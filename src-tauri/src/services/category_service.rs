@@ -262,8 +262,9 @@ pub fn reorder_categories(notes_dir: &str, from_id: &str, to_id: &str) -> Result
     if let (Some(from_idx), Some(to_idx)) = (from_pos, to_pos) {
         // Remove from current position
         let id = order_config.category_ids.remove(from_idx);
-        // Insert at new position (adjust for removal if moving forward)
-        let insert_idx = if from_idx < to_idx { to_idx } else { to_idx };
+        // Insert at new position
+        // After removal, if we were moving forward, the target index shifts left by 1
+        let insert_idx = if from_idx < to_idx { to_idx - 1 } else { to_idx };
         order_config.category_ids.insert(insert_idx, id);
 
         config_service::save_category_order(notes_dir, &order_config)

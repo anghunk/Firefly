@@ -61,7 +61,7 @@ async function handleOpenInExplorer(note: Note) {
   <div class="flex flex-col h-full">
     <!-- Header -->
     <div class="flex items-center justify-between px-3 h-10 border-b border-gray-200 dark:border-gray-800">
-      <span class="text-xs font-medium text-gray-500 dark:text-gray-400">
+      <span class="text-base font-medium text-gray-500 dark:text-gray-400">
         {{ categoryStore.selectedCategory?.name || '笔记' }}
       </span>
       <button
@@ -91,7 +91,7 @@ async function handleOpenInExplorer(note: Note) {
       <div v-else-if="categoryStore.selectedCategoryId" class="px-3 py-4 text-xs text-gray-400 text-center">
         暂无笔记
       </div>
-      <div v-else class="px-3 py-4 text-xs text-gray-400 text-center">
+      <div v-else class="px-3 py-4 text-sm text-gray-400 text-center">
         请选择分类
       </div>
     </div>

@@ -3,7 +3,7 @@ import { createPinia } from 'pinia';
 import App from './App.vue';
 import PhosphorIcons from '@phosphor-icons/vue';
 
-import '@/assets/style/style.css';
+import '@/assets/style/style.less';
 import '@/assets/style/tailwind.css';
 
 const app = createApp(App);

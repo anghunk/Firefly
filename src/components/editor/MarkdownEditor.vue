@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted, shallowRef } from 'vue';
+import { ref, watch, onMounted, onUnmounted, shallowRef, computed } from 'vue';
 import { EditorView, keymap, lineNumbers, drawSelection, highlightActiveLine, highlightActiveLineGutter } from '@codemirror/view';
 import { EditorState, Compartment } from '@codemirror/state';
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
 import { defaultHighlightStyle, syntaxHighlighting } from '@codemirror/language';
+import { useMarkdown } from '../../composables/useMarkdown';
+import 'github-markdown-css/github-markdown.css';
 
 const props = defineProps<{
   content: string;
@@ -27,6 +29,21 @@ const themeCompartment = new Compartment();
 const saveStatus = ref<'saved' | 'saving' | 'modified'>('saved');
 let saveTimeout: ReturnType<typeof setTimeout> | null = null;
 
+// Preview mode
+const isPreviewMode = ref(false);
+const { render: renderMarkdown } = useMarkdown();
+
+// Store current content for preview (reactive)
+const currentDocContent = ref(props.content);
+
+const renderedContent = computed(() => {
+  return renderMarkdown(currentDocContent.value);
+});
+
+function togglePreviewMode() {
+  isPreviewMode.value = !isPreviewMode.value;
+}
+
 // Create editor theme based on props
 function createTheme(fontSize: number, lineHeight: number) {
   return EditorView.theme({
@@ -35,7 +52,7 @@ function createTheme(fontSize: number, lineHeight: number) {
       fontSize: `${fontSize}px`,
     },
     '.cm-content': {
-      fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+      fontFamily: '"Noto Sans SC", ui-sans-serif, system-ui, -apple-system, sans-serif',
       lineHeight: lineHeight,
       padding: '16px 0',
     },
@@ -81,6 +98,7 @@ onMounted(() => {
   const updateListener = EditorView.updateListener.of((update) => {
     if (update.docChanged) {
       const newContent = update.state.doc.toString();
+      currentDocContent.value = newContent; // Update immediately for preview
       debouncedSave(newContent);
     }
   });
@@ -110,6 +128,7 @@ onMounted(() => {
 
 // Update content from outside
 watch(() => props.content, (newContent) => {
+  currentDocContent.value = newContent; // Update for preview
   if (editorView.value && editorView.value.state.doc.toString() !== newContent) {
     editorView.value.dispatch({
       changes: {
@@ -153,7 +172,16 @@ onUnmounted(() => {
 <template>
   <div class="flex flex-col h-full">
     <!-- Status bar -->
-    <div class="flex items-center justify-end px-4 h-8 border-b border-gray-200 dark:border-gray-800">
+    <div class="flex items-center justify-between px-4 h-8 border-b border-gray-200 dark:border-gray-800">
+      <button
+        @click="togglePreviewMode"
+        class="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+        :title="isPreviewMode ? '切换到编辑模式' : '切换到预览模式'"
+      >
+        <PhEye v-if="isPreviewMode" :size="16" />
+        <PhPencilSimple v-else :size="16" />
+        <span>{{ isPreviewMode ? '编辑' : '预览' }}</span>
+      </button>
       <span
         :class="[
           'text-xs',
@@ -167,7 +195,12 @@ onUnmounted(() => {
     </div>
 
     <!-- Editor -->
-    <div ref="editorContainer" class="flex-1 overflow-hidden" />
+    <div v-show="!isPreviewMode" ref="editorContainer" class="flex-1 overflow-hidden" />
+
+    <!-- Preview -->
+    <div v-show="isPreviewMode" class="flex-1 overflow-auto p-4">
+      <article class="markdown-body max-w-none" v-html="renderedContent" />
+    </div>
   </div>
 </template>
 
@@ -187,5 +220,29 @@ onUnmounted(() => {
 
 .dark .cm-selectionBackground {
   background-color: rgba(59, 130, 246, 0.3) !important;
+}
+
+/* Markdown preview container */
+.markdown-body {
+  font-family: "Noto Sans SC", ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+/* Dark mode support for github-markdown-css */
+.dark .markdown-body {
+  color-scheme: dark;
+  --color-fg-default: #e6edf3;
+  --color-fg-muted: #8d96a0;
+  --color-fg-subtle: #6e7681;
+  --color-canvas-default: #0d1117;
+  --color-canvas-subtle: #161b22;
+  --color-border-default: #30363d;
+  --color-border-muted: #21262d;
+  --color-neutral-muted: rgba(110,118,129,0.4);
+  --color-accent-fg: #58a6ff;
+  --color-accent-emphasis: #1f6feb;
+  --color-success-fg: #3fb950;
+  --color-attention-fg: #d29922;
+  --color-danger-fg: #f85149;
+  --color-done-fg: #a371f7;
 }
 </style>
