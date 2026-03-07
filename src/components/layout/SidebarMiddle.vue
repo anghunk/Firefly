@@ -44,7 +44,7 @@ watch(() => categoryStore.selectedCategoryId, async (categoryId) => {
   }
   // Clear search when switching categories
   searchQuery.value = '';
-});
+}, { immediate: true });
 
 function handleRenameNote(note: Note) {
   noteToRename.value = note;
