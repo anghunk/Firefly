@@ -30,6 +30,7 @@
     "@tailwindcss/vite": "^4.1.18",
     "@tauri-apps/cli": "^2.10.1",
     "@types/markdown-it": "^14.1.2",
+    "@types/node": "^25.3.5",
     "@vitejs/plugin-vue": "^5.0.0",
     "autoprefixer": "^10.4.24",
     "less": "^4.5.1",

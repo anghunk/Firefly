@@ -192,6 +192,7 @@ fn count_notes_in_dir(dir: &Path) -> Result<i32, std::io::Error> {
 // ============ Category Order Management ============
 
 /// Add a new category ID to the end of the order list
+#[allow(dead_code)]
 pub fn add_category_to_order(notes_dir: &str, category_id: &str) -> Result<(), CategoryError> {
     let mut order_config = config_service::get_category_order(notes_dir)
         .unwrap_or_default();

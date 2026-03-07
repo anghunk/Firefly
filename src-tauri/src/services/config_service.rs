@@ -10,6 +10,7 @@ pub enum ConfigError {
     #[error("Parse error: {0}")]
     Parse(#[from] serde_json::Error),
     #[error("No notes directory configured")]
+    #[allow(dead_code)]
     NoNotesDirectory,
 }
 
