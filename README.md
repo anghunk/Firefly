@@ -14,4 +14,13 @@ _捕捉思维的微光_
 
 开发 ing...
 
-<img width="1890" height="1146" alt="image" src="https://github.com/user-attachments/assets/383017c0-9ca6-4f2e-96b7-05bece734f02" />
+![](https://github.com/user-attachments/assets/383017c0-9ca6-4f2e-96b7-05bece734f02)
+
+## 安装
+
+1. 进入 [Releases](https://github.com/anghunk/Firefly/releases) 选择最新版本下载安装
+2. 下载源码自行编译可执行文件
+
+## LICENSE
+
+本项目基于 [GPL-3.0](https://github.com/anghunk/Firefly/blob/main/LICENSE) 协议开源。
