@@ -6,18 +6,12 @@ export const settingsService = {
     const result = await invoke<{
       notes_directory: string;
       theme: string;
-      editor_font_size: number;
-      editor_line_height: number;
-      auto_save_delay: number;
       show_line_numbers: boolean;
     }>('get_app_config');
 
     return {
       notesDirectory: result.notes_directory,
       theme: result.theme as AppConfig['theme'],
-      editorFontSize: result.editor_font_size,
-      editorLineHeight: result.editor_line_height,
-      autoSaveDelay: result.auto_save_delay,
       showLineNumbers: result.show_line_numbers,
     };
   },
@@ -27,9 +21,6 @@ export const settingsService = {
       config: {
         notes_directory: config.notesDirectory,
         theme: config.theme,
-        editor_font_size: config.editorFontSize,
-        editor_line_height: config.editorLineHeight,
-        auto_save_delay: config.autoSaveDelay,
         show_line_numbers: config.showLineNumbers,
       },
     });

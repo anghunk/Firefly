@@ -83,6 +83,7 @@ function handleOpenInExplorer() {
       :key="note.id"
       :note="note"
       :is-selected="note.id === selectedId"
+      :is-context-menu-active="contextMenuNote?.id === note.id"
       @click="emit('select', note.id)"
       @rename="emit('rename', note)"
       @delete="emit('delete', note)"

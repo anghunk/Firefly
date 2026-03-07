@@ -23,12 +23,6 @@ impl Default for AppConfig {
 /// Settings that sync across devices
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WorkspaceConfig {
-    /// Editor font size
-    pub editor_font_size: i32,
-    /// Editor line height
-    pub editor_line_height: f32,
-    /// Auto save delay in milliseconds
-    pub auto_save_delay: i32,
     /// Show line numbers
     pub show_line_numbers: bool,
 }
@@ -36,9 +30,6 @@ pub struct WorkspaceConfig {
 impl Default for WorkspaceConfig {
     fn default() -> Self {
         Self {
-            editor_font_size: 14,
-            editor_line_height: 1.6,
-            auto_save_delay: 500,
             show_line_numbers: true,
         }
     }
@@ -49,8 +40,5 @@ impl Default for WorkspaceConfig {
 pub struct FullConfig {
     pub notes_directory: String,
     pub theme: String,
-    pub editor_font_size: i32,
-    pub editor_line_height: f32,
-    pub auto_save_delay: i32,
     pub show_line_numbers: bool,
 }

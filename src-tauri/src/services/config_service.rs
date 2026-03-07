@@ -171,9 +171,6 @@ pub fn get_full_config() -> Result<FullConfig, ConfigError> {
     Ok(FullConfig {
         notes_directory: notes_dir,
         theme: app_config.theme,
-        editor_font_size: workspace_config.editor_font_size,
-        editor_line_height: workspace_config.editor_line_height,
-        auto_save_delay: workspace_config.auto_save_delay,
         show_line_numbers: workspace_config.show_line_numbers,
     })
 }
@@ -203,9 +200,6 @@ pub fn save_full_config(config: &FullConfig) -> Result<(), ConfigError> {
     // Save workspace config if notes directory is set
     if !config.notes_directory.is_empty() {
         let workspace_config = WorkspaceConfig {
-            editor_font_size: config.editor_font_size,
-            editor_line_height: config.editor_line_height,
-            auto_save_delay: config.auto_save_delay,
             show_line_numbers: config.show_line_numbers,
         };
         save_workspace_config(&config.notes_directory, &workspace_config)?;
@@ -229,9 +223,6 @@ impl From<WorkspaceConfig> for FullConfig {
         Self {
             notes_directory: String::new(),
             theme: "system".to_string(),
-            editor_font_size: workspace.editor_font_size,
-            editor_line_height: workspace.editor_line_height,
-            auto_save_delay: workspace.auto_save_delay,
             show_line_numbers: workspace.show_line_numbers,
         }
     }

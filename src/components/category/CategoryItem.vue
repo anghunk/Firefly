@@ -4,6 +4,7 @@ import type { Category } from '../../types';
 const props = defineProps<{
   category: Category;
   isSelected: boolean;
+  isContextMenuActive?: boolean;
   isDragging?: boolean;
   isDragOver?: boolean;
 }>();
@@ -86,9 +87,11 @@ function handleDrop(e: DragEvent) {
   <div
     :class="[
       'group flex items-center justify-between px-3 py-2 cursor-pointer transition-colors select-none',
-      isSelected
-        ? 'bg-gray-100 dark:bg-gray-800'
-        : 'hover:bg-gray-50 dark:hover:bg-gray-900',
+      isContextMenuActive
+        ? 'bg-blue-50 dark:bg-blue-900/30'
+        : isSelected
+          ? 'bg-gray-100 dark:bg-gray-800'
+          : 'hover:bg-gray-50 dark:hover:bg-gray-900',
       isDragging && 'opacity-50',
       isDragOver && 'bg-blue-50 dark:bg-blue-900/20'
     ]"

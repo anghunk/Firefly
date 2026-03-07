@@ -10,10 +10,7 @@ import 'github-markdown-css/github-markdown.css';
 
 const props = defineProps<{
   content: string;
-  fontSize?: number;
-  lineHeight?: number;
   showLineNumbers?: boolean;
-  autoSaveDelay?: number;
   notePath: string;
 }>();
 
@@ -44,16 +41,16 @@ function togglePreviewMode() {
   isPreviewMode.value = !isPreviewMode.value;
 }
 
-// Create editor theme based on props
-function createTheme(fontSize: number, lineHeight: number) {
+// Create editor theme with default values
+function createTheme() {
   return EditorView.theme({
     '&': {
       height: '100%',
-      fontSize: `${fontSize}px`,
+      fontSize: '14px',
     },
     '.cm-content': {
       fontFamily: '"Noto Sans SC", ui-sans-serif, system-ui, -apple-system, sans-serif',
-      lineHeight: lineHeight,
+      lineHeight: 1.6,
       padding: '16px 0',
     },
     '.cm-line': {
@@ -88,7 +85,7 @@ function debouncedSave(content: string) {
     saveStatus.value = 'saving';
     emit('save', content);
     saveStatus.value = 'saved';
-  }, props.autoSaveDelay || 500);
+  }, 500);
 }
 
 // Initialize editor
@@ -114,7 +111,7 @@ onMounted(() => {
       markdown({ base: markdownLanguage }),
       syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
       keymap.of([...defaultKeymap, ...historyKeymap]),
-      themeCompartment.of(createTheme(props.fontSize || 14, props.lineHeight || 1.6)),
+      themeCompartment.of(createTheme()),
       updateListener,
       EditorView.lineWrapping,
     ],
@@ -145,15 +142,6 @@ watch(() => props.showLineNumbers, (show) => {
   if (editorView.value) {
     editorView.value.dispatch({
       effects: lineNumbersCompartment.reconfigure(show !== false ? lineNumbers() : []),
-    });
-  }
-});
-
-// Update font size and line height
-watch([() => props.fontSize, () => props.lineHeight], ([fontSize, lineHeight]) => {
-  if (editorView.value) {
-    editorView.value.dispatch({
-      effects: themeCompartment.reconfigure(createTheme(fontSize || 14, lineHeight || 1.6)),
     });
   }
 });

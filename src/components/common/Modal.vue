@@ -1,14 +1,28 @@
 <script setup lang="ts">
-defineProps<{
+import { computed } from 'vue';
+
+const props = withDefaults(defineProps<{
   isOpen: boolean;
   title?: string;
   closeOnBackdrop?: boolean;
   size?: 'sm' | 'md' | 'lg' | 'xl';
-}>();
+}>(), {
+  size: 'md',
+});
 
 const emit = defineEmits<{
   close: [];
 }>();
+
+const sizeClasses = computed(() => {
+  const sizes: Record<string, string> = {
+    sm: 'max-w-sm',
+    md: 'max-w-[400px]',
+    lg: 'max-w-[80%]',
+    xl: 'max-w-4xl',
+  };
+  return sizes[props.size];
+});
 
 function handleBackdropClick(e: MouseEvent) {
   if (e.target === e.currentTarget) {
@@ -42,7 +56,7 @@ function handleBackdropClick(e: MouseEvent) {
         >
           <div
             v-if="isOpen"
-            class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 mx-4 max-w-2xl w-full"
+            :class="['bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 mx-4 w-full', sizeClasses]"
           >
             <div v-if="title" class="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
               <h3 class="text-sm font-medium">{{ title }}</h3>

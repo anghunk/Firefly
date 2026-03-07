@@ -17,18 +17,12 @@ export const useSettingsStore = defineStore('settings', () => {
       const result = await invoke<{
         notes_directory: string;
         theme: string;
-        editor_font_size: number;
-        editor_line_height: number;
-        auto_save_delay: number;
         show_line_numbers: boolean;
       }>('get_app_config');
 
       config.value = {
         notesDirectory: result.notes_directory,
         theme: result.theme as AppConfig['theme'],
-        editorFontSize: result.editor_font_size,
-        editorLineHeight: result.editor_line_height,
-        autoSaveDelay: result.auto_save_delay,
         showLineNumbers: result.show_line_numbers,
       };
       isInitialized.value = true;
@@ -58,9 +52,6 @@ export const useSettingsStore = defineStore('settings', () => {
         config: {
           notes_directory: config.value.notesDirectory,
           theme: config.value.theme,
-          editor_font_size: config.value.editorFontSize,
-          editor_line_height: config.value.editorLineHeight,
-          auto_save_delay: config.value.autoSaveDelay,
           show_line_numbers: config.value.showLineNumbers,
         },
       });

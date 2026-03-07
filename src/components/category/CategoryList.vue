@@ -115,6 +115,7 @@ function handleDelete() {
       :key="category.id"
       :category="category"
       :is-selected="category.id === selectedId"
+      :is-context-menu-active="contextMenuCategory?.id === category.id"
       :is-dragging="category.id === draggedId"
       :is-drag-over="category.id === dragOverId"
       @click="emit('select', category.id)"
