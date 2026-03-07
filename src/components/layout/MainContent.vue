@@ -31,10 +31,7 @@ watch(() => noteStore.selectedNoteId, async (noteId) => {
     <MarkdownEditor
       v-else-if="noteStore.noteContent"
       :content="noteStore.noteContent.content"
-      :font-size="settingsStore.config.editorFontSize"
-      :line-height="settingsStore.config.editorLineHeight"
       :show-line-numbers="settingsStore.config.showLineNumbers"
-      :auto-save-delay="settingsStore.config.autoSaveDelay"
       :note-path="noteStore.selectedNote?.path || ''"
       @save="(content) => noteStore.saveNote(noteStore.selectedNote?.path || '', content)"
     />
