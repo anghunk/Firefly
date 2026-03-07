@@ -14,5 +14,4 @@ _捕捉思维的微光_
 
 开发 ing...
 
-<img width="2559" height="1518" alt="image" src="https://github.com/user-attachments/assets/80af58da-70f4-4d8d-b57d-0282da0c2ea5" />
-
+<img width="1890" height="1146" alt="image" src="https://github.com/user-attachments/assets/383017c0-9ca6-4f2e-96b7-05bece734f02" />
