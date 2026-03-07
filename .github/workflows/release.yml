@@ -49,7 +49,7 @@ jobs:
       - name: Compare versions
         shell: bash
         run: |
-          if [ "$(cat latest_release.txt)" != "$PACKAGE_VERSION" ]; then
+          if [ "$(cat latest_release.txt)" != "v$PACKAGE_VERSION" ]; then
             echo "Version mismatch"
             echo "create_release=true" >> $GITHUB_ENV
           else
@@ -77,8 +77,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$PACKAGE_VERSION" \
-            --title "$PACKAGE_VERSION" \
+          gh release create "v$PACKAGE_VERSION" \
+            --title "v$PACKAGE_VERSION" \
             --notes "### 安装方式
           下载下方的安装程序，运行即可安装。" \
             "${{ steps.find_files.outputs.installer }}"
