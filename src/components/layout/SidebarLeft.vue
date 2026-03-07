@@ -115,12 +115,6 @@ async function confirmDelete() {
   }
 }
 
-async function handleReorder(fromId: string, toId: string) {
-  console.log('[SidebarLeft] handleReorder:', fromId, '->', toId);
-  console.log('[SidebarLeft] notesDirectory:', settingsStore.config.notesDirectory);
-  await categoryStore.reorderCategories(settingsStore.config.notesDirectory, fromId, toId);
-}
-
 const deletingCategory = () => {
   if (!deletingCategoryId.value) return null;
   return categoryStore.categories.find(c => c.id === deletingCategoryId.value);

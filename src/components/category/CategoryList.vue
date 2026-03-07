@@ -14,16 +14,10 @@ const emit = defineEmits<{
   select: [id: string];
   rename: [id: string];
   delete: [id: string];
-  reorder: [fromId: string, toId: string];
 }>();
 
 const { openMenu, closeMenu } = useContextMenu();
 const MENU_ID = 'category-list';
-
-const draggedId = ref<string | null>(null);
-const dragOverId = ref<string | null>(null);
-// Use counter to track nested drag enter/leave
-const dragEnterCount = ref(0);
 
 // Context menu state (managed at list level to ensure only one is open)
 const contextMenuCategory = ref<Category | null>(null);
@@ -42,39 +36,6 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('close-context-menu', handleCloseContextMenu);
 });
-
-function handleDragStart(id: string) {
-  draggedId.value = id;
-  dragEnterCount.value = 0;
-}
-
-function handleDragEnd() {
-  draggedId.value = null;
-  dragOverId.value = null;
-  dragEnterCount.value = 0;
-}
-
-function handleDragOver(id: string) {
-  if (draggedId.value && draggedId.value !== id) {
-    dragOverId.value = id;
-  }
-}
-
-function handleDrop(toId: string) {
-  if (draggedId.value && draggedId.value !== toId) {
-    emit('reorder', draggedId.value, toId);
-  }
-  // Reset state
-  draggedId.value = null;
-  dragOverId.value = null;
-  dragEnterCount.value = 0;
-}
-
-function handleDragLeave() {
-  // Only clear dragOverId when truly leaving the drop target
-  // This is a fallback - the main logic uses relatedTarget in CategoryItem
-  dragOverId.value = null;
-}
 
 function handleContextMenu(category: Category, e: MouseEvent) {
   e.preventDefault();
@@ -116,16 +77,9 @@ function handleDelete() {
       :category="category"
       :is-selected="category.id === selectedId"
       :is-context-menu-active="contextMenuCategory?.id === category.id"
-      :is-dragging="category.id === draggedId"
-      :is-drag-over="category.id === dragOverId"
       @click="emit('select', category.id)"
       @rename="emit('rename', category.id)"
       @delete="emit('delete', category.id)"
-      @drag-start="handleDragStart"
-      @drag-end="handleDragEnd"
-      @drag-over="handleDragOver"
-      @drag-leave="handleDragLeave"
-      @drop="handleDrop"
       @contextmenu="(e) => handleContextMenu(category, e)"
     />
 
