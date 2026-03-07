@@ -32,6 +32,7 @@ export const useNoteStore = defineStore('note', () => {
   const selectedNoteId = ref<string | null>(null);
   const noteContent = ref<NoteContent | null>(null);
   const isLoading = ref(false);
+  const isContentLoading = ref(false);
   const isSaving = ref(false);
   const error = ref<string | null>(null);
 
@@ -80,7 +81,7 @@ export const useNoteStore = defineStore('note', () => {
   }
 
   async function loadNoteContent(notePath: string) {
-    isLoading.value = true;
+    isContentLoading.value = true;
     error.value = null;
     try {
       const result = await invoke<RawNoteContent>('get_note_content', { notePath });
@@ -98,7 +99,7 @@ export const useNoteStore = defineStore('note', () => {
     } catch (e) {
       error.value = String(e);
     } finally {
-      isLoading.value = false;
+      isContentLoading.value = false;
     }
   }
 
@@ -163,6 +164,7 @@ export const useNoteStore = defineStore('note', () => {
     selectedNote,
     noteContent,
     isLoading,
+    isContentLoading,
     isSaving,
     error,
     fetchNotes,

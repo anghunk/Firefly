@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
 import type { Category } from '../../types';
-import { ContextMenu, ContextMenuItem } from '../common';
 
 const props = defineProps<{
   category: Category;
@@ -19,11 +17,8 @@ const emit = defineEmits<{
   dragOver: [id: string];
   dragLeave: [];
   drop: [id: string];
+  contextmenu: [e: MouseEvent];
 }>();
-
-const showContextMenu = ref(false);
-const contextMenuX = ref(0);
-const contextMenuY = ref(0);
 
 function handleClick() {
   emit('click');
@@ -32,19 +27,7 @@ function handleClick() {
 function handleContextMenu(e: MouseEvent) {
   e.preventDefault();
   e.stopPropagation();
-  contextMenuX.value = e.clientX;
-  contextMenuY.value = e.clientY;
-  showContextMenu.value = true;
-}
-
-function handleRename() {
-  showContextMenu.value = false;
-  emit('rename');
-}
-
-function handleDelete() {
-  showContextMenu.value = false;
-  emit('delete');
+  emit('contextmenu', e);
 }
 
 function handleDragStart(e: DragEvent) {
@@ -127,21 +110,4 @@ function handleDrop(e: DragEvent) {
       </span>
     </div>
   </div>
-
-  <!-- Context Menu -->
-  <ContextMenu
-    :is-open="showContextMenu"
-    :x="contextMenuX"
-    :y="contextMenuY"
-    @close="showContextMenu = false"
-  >
-    <ContextMenuItem @click="handleRename">
-      <PhPencilSimple :size="16" />
-      <span>重命名</span>
-    </ContextMenuItem>
-    <ContextMenuItem danger @click="handleDelete">
-      <PhTrash :size="16" />
-      <span>删除</span>
-    </ContextMenuItem>
-  </ContextMenu>
 </template>

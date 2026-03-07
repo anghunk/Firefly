@@ -13,10 +13,16 @@ const emit = defineEmits<{
 
 const menuRef = ref<HTMLElement | null>(null);
 const position = ref({ x: 0, y: 0 });
+let contextmenuTimeout: number | null = null;
 
 // Adjust position to keep menu in viewport
 watch(() => props.isOpen, (isOpen) => {
   if (isOpen) {
+    // 延迟添加 contextmenu 监听器，避免打开菜单的右键事件立即触发关闭
+    contextmenuTimeout = window.setTimeout(() => {
+      document.addEventListener('contextmenu', handleClickOutside);
+    }, 0);
+
     requestAnimationFrame(() => {
       if (menuRef.value) {
         const rect = menuRef.value.getBoundingClientRect();
@@ -36,10 +42,18 @@ watch(() => props.isOpen, (isOpen) => {
         position.value = { x, y };
       }
     });
+  } else {
+    // 菜单关闭时移除 contextmenu 监听器
+    if (contextmenuTimeout) {
+      clearTimeout(contextmenuTimeout);
+      contextmenuTimeout = null;
+    }
+    document.removeEventListener('contextmenu', handleClickOutside);
   }
 });
 
 function handleClickOutside(e: MouseEvent) {
+  // Close on click or contextmenu outside the menu
   if (menuRef.value && !menuRef.value.contains(e.target as Node)) {
     emit('close');
   }
@@ -58,7 +72,11 @@ onMounted(() => {
 
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside);
+  document.removeEventListener('contextmenu', handleClickOutside);
   document.removeEventListener('keydown', handleEscape);
+  if (contextmenuTimeout) {
+    clearTimeout(contextmenuTimeout);
+  }
 });
 </script>
 

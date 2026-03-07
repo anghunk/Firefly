@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { useCategoryStore, useSettingsStore } from '../../stores';
 import CategoryList from '../category/CategoryList.vue';
 import CategoryForm from '../category/CategoryForm.vue';
 import CategoryRenameModal from '../category/CategoryRenameModal.vue';
 import { ContextMenu, ContextMenuItem, ConfirmDialog } from '../common';
+import { useContextMenu } from '../../composables/useContextMenu';
 
 const emit = defineEmits<{
   openSettings: [];
@@ -12,6 +13,9 @@ const emit = defineEmits<{
 
 const categoryStore = useCategoryStore();
 const settingsStore = useSettingsStore();
+const { openMenu, closeMenu } = useContextMenu();
+
+const MENU_ID = 'sidebar-left';
 
 const showCreateForm = ref(false);
 const isLoading = ref(false);
@@ -30,8 +34,19 @@ const renamingCategoryName = ref('');
 const showDeleteConfirm = ref(false);
 const deletingCategoryId = ref<string | null>(null);
 
+// 监听全局关闭事件
+function handleCloseContextMenu() {
+  showContextMenu.value = false;
+  closeMenu();
+}
+
 onMounted(async () => {
   await settingsStore.loadConfig();
+  window.addEventListener('close-context-menu', handleCloseContextMenu);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('close-context-menu', handleCloseContextMenu);
 });
 
 watch(() => settingsStore.config.notesDirectory, async (notesDir) => {
@@ -57,10 +72,16 @@ function handleContextMenu(e: MouseEvent) {
   contextMenuX.value = e.clientX;
   contextMenuY.value = e.clientY;
   showContextMenu.value = true;
+  openMenu(MENU_ID);
+}
+
+function closeContextMenu() {
+  showContextMenu.value = false;
+  closeMenu();
 }
 
 function handleCreateCategory() {
-  showContextMenu.value = false;
+  closeContextMenu();
   showCreateForm.value = true;
 }
 
@@ -169,7 +190,7 @@ const deletingCategory = () => {
       :is-open="showContextMenu"
       :x="contextMenuX"
       :y="contextMenuY"
-      @close="showContextMenu = false"
+      @close="closeContextMenu"
     >
       <ContextMenuItem @click="handleCreateCategory">
         <PhFolderPlus :size="16" />
