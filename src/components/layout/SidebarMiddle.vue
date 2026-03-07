@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { Command } from '@tauri-apps/plugin-shell';
+import { PhMagnifyingGlass, PhPlus, PhX } from '@phosphor-icons/vue';
 import { useCategoryStore, useNoteStore } from '../../stores';
 import NoteList from '../note/NoteList.vue';
 import NoteForm from '../note/NoteForm.vue';
@@ -17,12 +18,32 @@ const showDeleteConfirm = ref(false);
 const noteToRename = ref<Note | null>(null);
 const noteToDelete = ref<Note | null>(null);
 
+// Search state
+const searchQuery = ref('');
+
+// Filtered notes based on search query
+const filteredNotes = computed(() => {
+  if (!searchQuery.value.trim()) {
+    return noteStore.notes;
+  }
+  const query = searchQuery.value.toLowerCase();
+  return noteStore.notes.filter(note =>
+    note.title.toLowerCase().includes(query)
+  );
+});
+
+function clearSearch() {
+  searchQuery.value = '';
+}
+
 watch(() => categoryStore.selectedCategoryId, async (categoryId) => {
   if (categoryId) {
     await noteStore.fetchNotes(categoryId);
   } else {
     noteStore.clearNotes();
   }
+  // Clear search when switching categories
+  searchQuery.value = '';
 });
 
 function handleRenameNote(note: Note) {
@@ -59,14 +80,32 @@ async function handleOpenInExplorer(note: Note) {
 
 <template>
   <div class="flex flex-col h-full">
-    <!-- Header -->
-    <div class="flex items-center justify-between px-3 h-10 border-b border-gray-200 dark:border-gray-800">
-      <span class="text-base font-medium text-gray-500 dark:text-gray-400">
-        {{ categoryStore.selectedCategory?.name || '笔记' }}
-      </span>
+    <!-- Header with Search -->
+    <div class="flex items-center gap-2 px-3 h-10 border-b border-gray-200 dark:border-gray-800">
+      <!-- Search Input -->
+      <div class="flex-1 relative">
+        <PhMagnifyingGlass
+          :size="14"
+          class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400"
+        />
+        <input
+          v-model="searchQuery"
+          type="text"
+          :placeholder="categoryStore.selectedCategory?.name || '搜索笔记'"
+          class="w-full h-7 pl-7 pr-6 text-sm bg-gray-100 dark:bg-gray-800 rounded border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:text-gray-200 placeholder:text-gray-400"
+        />
+        <button
+          v-if="searchQuery"
+          class="absolute right-1.5 top-1/2 -translate-y-1/2 p-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+          @click="clearSearch"
+        >
+          <PhX :size="12" />
+        </button>
+      </div>
+      <!-- Create Button -->
       <button
         v-if="categoryStore.selectedCategoryId"
-        class="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400"
+        class="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-pointer"
         @click="showCreateForm = true"
         title="新建笔记"
       >
@@ -80,14 +119,17 @@ async function handleOpenInExplorer(note: Note) {
         加载中...
       </div>
       <NoteList
-        v-else-if="noteStore.notes.length > 0"
-        :notes="noteStore.notes"
+        v-else-if="filteredNotes.length > 0"
+        :notes="filteredNotes"
         :selected-id="noteStore.selectedNoteId"
         @select="noteStore.selectNote"
         @rename="handleRenameNote"
         @delete="handleDeleteNote"
         @open-in-explorer="handleOpenInExplorer"
       />
+      <div v-else-if="categoryStore.selectedCategoryId && searchQuery" class="px-3 py-4 text-xs text-gray-400 text-center">
+        未找到匹配的笔记
+      </div>
       <div v-else-if="categoryStore.selectedCategoryId" class="px-3 py-4 text-xs text-gray-400 text-center">
         暂无笔记
       </div>

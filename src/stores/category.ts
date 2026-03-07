@@ -143,14 +143,23 @@ export const useCategoryStore = defineStore('category', () => {
     const insertIndex = fromIndex < toIndex ? toIndex - 1 : toIndex;
     categories.value.splice(insertIndex, 0, removed);
 
-    // Update order list - find positions in categoryOrder array (not categories array)
-    const orderFromIndex = categoryOrder.value.indexOf(fromId);
-    const orderToIndex = categoryOrder.value.indexOf(toId);
+    // Update order list - ensure it includes all category IDs
+    // If categoryOrder is incomplete, initialize it from current categories
+    if (categoryOrder.value.length !== categories.value.length) {
+      categoryOrder.value = categories.value.map(c => c.id);
+    } else {
+      // Find positions in categoryOrder array
+      const orderFromIndex = categoryOrder.value.indexOf(fromId);
+      const orderToIndex = categoryOrder.value.indexOf(toId);
 
-    if (orderFromIndex !== -1 && orderToIndex !== -1) {
-      const [orderRemoved] = categoryOrder.value.splice(orderFromIndex, 1);
-      const orderInsertIndex = orderFromIndex < orderToIndex ? orderToIndex - 1 : orderToIndex;
-      categoryOrder.value.splice(orderInsertIndex, 0, orderRemoved);
+      if (orderFromIndex !== -1 && orderToIndex !== -1) {
+        const [orderRemoved] = categoryOrder.value.splice(orderFromIndex, 1);
+        const orderInsertIndex = orderFromIndex < orderToIndex ? orderToIndex - 1 : orderToIndex;
+        categoryOrder.value.splice(orderInsertIndex, 0, orderRemoved);
+      } else {
+        // IDs not in order list, rebuild from categories
+        categoryOrder.value = categories.value.map(c => c.id);
+      }
     }
 
     // Persist to backend

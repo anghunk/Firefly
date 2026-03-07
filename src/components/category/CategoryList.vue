@@ -17,14 +17,18 @@ const emit = defineEmits<{
 
 const draggedId = ref<string | null>(null);
 const dragOverId = ref<string | null>(null);
+// Use counter to track nested drag enter/leave
+const dragEnterCount = ref(0);
 
 function handleDragStart(id: string) {
   draggedId.value = id;
+  dragEnterCount.value = 0;
 }
 
 function handleDragEnd() {
   draggedId.value = null;
   dragOverId.value = null;
+  dragEnterCount.value = 0;
 }
 
 function handleDragOver(id: string) {
@@ -37,11 +41,15 @@ function handleDrop(toId: string) {
   if (draggedId.value && draggedId.value !== toId) {
     emit('reorder', draggedId.value, toId);
   }
+  // Reset state
   draggedId.value = null;
   dragOverId.value = null;
+  dragEnterCount.value = 0;
 }
 
 function handleDragLeave() {
+  // Only clear dragOverId when truly leaving the drop target
+  // This is a fallback - the main logic uses relatedTarget in CategoryItem
   dragOverId.value = null;
 }
 </script>

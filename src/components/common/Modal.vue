@@ -42,14 +42,7 @@ function handleBackdropClick(e: MouseEvent) {
         >
           <div
             v-if="isOpen"
-            :class="[
-              'bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 mx-4',
-              size === 'sm' && 'w-full max-w-sm',
-              size === 'md' && 'w-full max-w-md',
-              size === 'lg' && 'w-full max-w-2xl',
-              size === 'xl' && 'w-full max-w-4xl',
-              !size && 'w-full max-w-md',
-            ]"
+            class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 mx-4 max-w-2xl w-full"
           >
             <div v-if="title" class="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
               <h3 class="text-sm font-medium">{{ title }}</h3>

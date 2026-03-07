@@ -53,27 +53,25 @@ function handleDragStart(e: DragEvent) {
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', props.category.id);
   }
-  emit('dragStart', props.category.id);
+  // Small delay to let the drag image be created before applying opacity
+  setTimeout(() => {
+    emit('dragStart', props.category.id);
+  }, 0);
 }
 
-function handleDragEnd(e: DragEvent) {
-  if (e.target) {
-    const target = e.target as HTMLElement;
-    target.style.opacity = '';
-  }
+function handleDragEnd() {
   emit('dragEnd');
 }
 
 function handleDragEnter(e: DragEvent) {
   e.preventDefault();
+  if (e.dataTransfer) {
+    e.dataTransfer.dropEffect = 'move';
+  }
   // Only emit if entering from outside this element
   const currentTarget = e.currentTarget as HTMLElement;
   const relatedTarget = e.relatedTarget as HTMLElement | null;
-  // If relatedTarget is null or not inside currentTarget, we're entering from outside
   if (!relatedTarget || !currentTarget.contains(relatedTarget)) {
-    if (e.dataTransfer) {
-      e.dataTransfer.dropEffect = 'move';
-    }
     emit('dragOver', props.category.id);
   }
 }
