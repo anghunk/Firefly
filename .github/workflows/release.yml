@@ -37,61 +37,49 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Get package version
-        id: package_version
-        run: |
-          VERSION=$(node -p "require('./package.json').version")
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Package version: $VERSION"
+      - name: Get package.json version
+        shell: bash
+        run: echo "PACKAGE_VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_ENV
 
       - name: Get latest release version
-        id: release_version
-        env:
-          GH_TOKEN: ${{ github.token }}
+        shell: bash
         run: |
-          LATEST=$(gh release view --json tagName --jq '.tagName' 2>/dev/null || echo "v0.0.0")
-          # Remove 'v' prefix if present
-          LATEST=${LATEST#v}
-          echo "version=$LATEST" >> $GITHUB_OUTPUT
-          echo "Latest release version: $LATEST"
+          curl -s https://api.github.com/repos/${{ github.repository }}/releases/latest | jq -r '.tag_name' > latest_release.txt
 
-      - name: Check version changed
-        id: check_version
+      - name: Compare versions
+        shell: bash
         run: |
-          if [ "${{ steps.package_version.outputs.version }}" != "${{ steps.release_version.outputs.version }}" ]; then
-            echo "changed=true" >> $GITHUB_OUTPUT
-            echo "Version changed from ${{ steps.release_version.outputs.version }} to ${{ steps.package_version.outputs.version }}"
+          if [ "$(cat latest_release.txt)" != "v$PACKAGE_VERSION" ]; then
+            echo "Version mismatch"
+            echo "create_release=true" >> $GITHUB_ENV
           else
-            echo "changed=false" >> $GITHUB_OUTPUT
-            echo "Version unchanged, skipping release"
+            echo "Version matches"
+            echo "create_release=false" >> $GITHUB_ENV
           fi
 
       - name: Build Tauri app
-        if: steps.check_version.outputs.changed == 'true'
+        if: env.create_release == 'true'
         run: npm run tauri:build
 
       - name: Find built files
-        if: steps.check_version.outputs.changed == 'true'
+        if: env.create_release == 'true'
         id: find_files
+        shell: bash
         run: |
           # Find NSIS installer
           INSTALLER=$(find src-tauri/target/release/bundle/nsis -name "*.exe" -type f | head -n 1)
           echo "installer=$INSTALLER" >> $GITHUB_OUTPUT
           echo "Found installer: $INSTALLER"
 
-          # Get installer filename for release asset name
-          INSTALLER_NAME=$(basename "$INSTALLER")
-          echo "installer_name=$INSTALLER_NAME" >> $GITHUB_OUTPUT
-
       - name: Create Release
-        if: steps.check_version.outputs.changed == 'true'
+        if: env.create_release == 'true'
+        shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          VERSION=${{ steps.package_version.outputs.version }}
-          gh release create "v$VERSION" \
-            --title "v$VERSION" \
-            --notes "## 萤火 v$VERSION
+          gh release create "v$PACKAGE_VERSION" \
+            --title "v$PACKAGE_VERSION" \
+            --notes "## 萤火 v$PACKAGE_VERSION
 
           ### 更新内容
           请查看 commit 历史了解详细变更。
