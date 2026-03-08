@@ -38,3 +38,29 @@ pub struct SaveNoteRequest {
     pub path: String,
     pub content: String,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TreeNode {
+    pub id: String,
+    pub name: String,
+    pub path: String,
+    #[serde(rename = "type")]
+    pub node_type: String,  // "folder" | "file"
+    pub depth: i32,
+    pub created_at: String,
+    pub updated_at: String,
+    pub tags: Option<Vec<String>>,
+    pub is_empty: Option<bool>,  // 仅文件夹使用
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct CreateFolderRequest {
+    pub parent_path: String,
+    pub name: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct CreateNoteInFolderRequest {
+    pub parent_path: String,
+    pub title: String,
+}

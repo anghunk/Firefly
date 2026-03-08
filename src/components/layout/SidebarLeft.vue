@@ -63,6 +63,11 @@ watch(() => settingsStore.config.notesDirectory, async (notesDir) => {
       }
     }
 
+    // Auto select first category if none selected
+    if (!categoryStore.selectedCategoryId && categoryStore.categories.length > 0) {
+      categoryStore.selectCategory(categoryStore.categories[0].id);
+    }
+
     isLoading.value = false;
   }
 }, { immediate: true });

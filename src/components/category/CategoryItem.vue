@@ -39,11 +39,8 @@ function handleContextMenu(e: MouseEvent) {
     @contextmenu="handleContextMenu"
   >
     <div class="flex items-center gap-2 min-w-0 pointer-events-none">
-      <PhFolderOpen :size="16" class="text-gray-400 flex-shrink-0" />
+      <PhFolderOpen :size="16" class="text-yellow-500 flex-shrink-0" />
       <span class="text-base truncate">{{ category.name }}</span>
-      <span v-if="category.noteCount > 0" class="text-xs text-gray-400 flex-shrink-0">
-        {{ category.noteCount }}
-      </span>
     </div>
   </div>
 </template>

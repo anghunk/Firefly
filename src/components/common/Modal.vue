@@ -59,7 +59,7 @@ function handleBackdropClick(e: MouseEvent) {
             :class="['bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 mx-4 w-full', sizeClasses]"
           >
             <div v-if="title" class="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-              <h3 class="text-sm font-medium">{{ title }}</h3>
+              <h3 class="text-base font-medium">{{ title }}</h3>
             </div>
             <div class="p-4">
               <slot />

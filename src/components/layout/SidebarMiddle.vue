@@ -1,33 +1,42 @@
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue';
+import { ref, watch, computed, onMounted } from 'vue';
 import { Command } from '@tauri-apps/plugin-shell';
-import { useCategoryStore, useNoteStore } from '../../stores';
-import NoteList from '../note/NoteList.vue';
-import NoteForm from '../note/NoteForm.vue';
-import NoteRenameModal from '../note/NoteRenameModal.vue';
+import { useCategoryStore, useTreeStore, useNoteStore } from '../../stores';
+import { TreeList, FolderCreateModal, TreeNodeRenameModal, NoteCreateModal } from '../tree';
 import ConfirmDialog from '../common/ConfirmDialog.vue';
-import type { Note } from '../../types';
+import type { TreeNode } from '../../types';
 
 const categoryStore = useCategoryStore();
+const treeStore = useTreeStore();
 const noteStore = useNoteStore();
 
-const showCreateForm = ref(false);
+// Load expanded paths on mount
+onMounted(() => {
+  treeStore.loadExpandedPaths();
+});
+
+// Modal states
+const showCreateNoteModal = ref(false);
+const showCreateFolderModal = ref(false);
 const showRenameModal = ref(false);
 const showDeleteConfirm = ref(false);
-const noteToRename = ref<Note | null>(null);
-const noteToDelete = ref<Note | null>(null);
+
+// Node being operated on
+const nodeToRename = ref<TreeNode | null>(null);
+const nodeToDelete = ref<TreeNode | null>(null);
+const createNoteParentPath = ref('');
 
 // Search state
 const searchQuery = ref('');
 
-// Filtered notes based on search query
-const filteredNotes = computed(() => {
+// Filtered nodes based on search query
+const filteredNodes = computed(() => {
   if (!searchQuery.value.trim()) {
-    return noteStore.notes;
+    return treeStore.visibleNodes;
   }
   const query = searchQuery.value.toLowerCase();
-  return noteStore.notes.filter(note =>
-    note.title.toLowerCase().includes(query)
+  return treeStore.visibleNodes.filter(node =>
+    node.name.toLowerCase().includes(query)
   );
 });
 
@@ -37,49 +46,105 @@ function clearSearch() {
 
 watch(() => categoryStore.selectedCategoryId, async (categoryId) => {
   if (categoryId) {
-    await noteStore.fetchNotes(categoryId);
+    await treeStore.fetchTree(categoryId);
   } else {
-    noteStore.clearNotes();
+    treeStore.clearTree();
   }
   // Clear search when switching categories
   searchQuery.value = '';
 }, { immediate: true });
 
-function handleRenameNote(note: Note) {
-  noteToRename.value = note;
+// Handle node selection
+function handleSelect(id: string) {
+  treeStore.selectNode(id);
+  const node = treeStore.allNodes.find(n => n.id === id);
+
+  // If it's a file, load its content
+  if (node?.type === 'file') {
+    noteStore.selectNote(node.id);
+    noteStore.loadNoteContent(node.path);
+  } else {
+    noteStore.selectNote(null);
+  }
+}
+
+// Handle folder toggle
+function handleToggle(path: string) {
+  treeStore.toggleFolder(path);
+}
+
+// Handle rename
+function handleRename(node: TreeNode) {
+  nodeToRename.value = node;
   showRenameModal.value = true;
 }
 
-async function handleRenameSubmit(newTitle: string) {
-  if (noteToRename.value) {
-    await noteStore.renameNote(noteToRename.value.path, newTitle);
+async function handleRenameSubmit(newName: string) {
+  if (nodeToRename.value) {
+    await treeStore.renameNode(nodeToRename.value.path, newName, nodeToRename.value.type);
     showRenameModal.value = false;
-    noteToRename.value = null;
+    nodeToRename.value = null;
   }
 }
 
-function handleDeleteNote(note: Note) {
-  noteToDelete.value = note;
+// Handle delete
+function handleDelete(node: TreeNode) {
+  nodeToDelete.value = node;
   showDeleteConfirm.value = true;
 }
 
+const deleteMessage = computed(() => {
+  if (!nodeToDelete.value) return '';
+  const node = nodeToDelete.value;
+  if (node.type === 'folder') {
+    return `确定要删除文件夹「${node.name}」及其所有内容吗？此操作将移至回收站。`;
+  }
+  return `确定要删除笔记「${node.name}」吗？此操作将移至回收站。`;
+});
+
 async function confirmDelete() {
-  if (noteToDelete.value) {
-    await noteStore.deleteNote(noteToDelete.value.path);
+  if (nodeToDelete.value) {
+    await treeStore.deleteNode(nodeToDelete.value.path, nodeToDelete.value.type);
     showDeleteConfirm.value = false;
-    noteToDelete.value = null;
+    nodeToDelete.value = null;
   }
 }
 
-async function handleOpenInExplorer(note: Note) {
-  // Windows: use explorer /select to open and highlight the file
-  await Command.create('explorer', ['/select,', note.path]).execute();
+// Handle create note
+function handleCreateNote(parentPath: string) {
+  createNoteParentPath.value = parentPath;
+  showCreateNoteModal.value = true;
+}
+
+function handleCreateNoteSubmit() {
+  showCreateNoteModal.value = false;
+  createNoteParentPath.value = '';
+}
+
+// Handle create folder
+const createFolderParentPath = ref('');
+
+function handleCreateFolder(parentPath: string) {
+  createFolderParentPath.value = parentPath;
+  showCreateFolderModal.value = true;
+}
+
+async function handleCreateFolderSubmit(name: string) {
+  await treeStore.createFolder(createFolderParentPath.value, name);
+  showCreateFolderModal.value = false;
+  createFolderParentPath.value = '';
+}
+
+// Handle open in explorer
+async function handleOpenInExplorer(node: TreeNode) {
+  // Windows: use explorer /select to open and highlight the file/folder
+  await Command.create('explorer', ['/select,', node.path]).execute();
 }
 </script>
 
 <template>
   <div class="flex flex-col h-full">
-    <!-- Header with Search -->
+    <!-- Header with Search and Create Buttons -->
     <div class="flex items-center gap-2 px-3 h-10 border-b border-gray-200 dark:border-gray-800">
       <!-- Search Input -->
       <div class="flex-1 relative">
@@ -101,67 +166,87 @@ async function handleOpenInExplorer(note: Note) {
           <PhX :size="12" />
         </button>
       </div>
-      <!-- Create Button -->
-      <button
-        v-if="categoryStore.selectedCategoryId"
-        class="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-pointer"
-        @click="showCreateForm = true"
-        title="新建笔记"
-      >
-        <PhHighlighter :size="14" />
-      </button>
+
+      <!-- Create Buttons -->
+      <template v-if="categoryStore.selectedCategoryId">
+        <button
+          class="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-pointer"
+          @click="createNoteParentPath = categoryStore.selectedCategoryId || ''; showCreateNoteModal = true"
+          title="新建笔记"
+        >
+          <PhHighlighter :size="14" />
+        </button>
+        <button
+          class="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-pointer"
+          @click="createFolderParentPath = categoryStore.selectedCategoryId || ''; showCreateFolderModal = true"
+          title="新建文件夹"
+        >
+          <PhFolderPlus :size="14" />
+        </button>
+      </template>
     </div>
 
-    <!-- Note List -->
+    <!-- Tree List -->
     <div class="flex-1 overflow-y-auto">
-      <div v-if="noteStore.isLoading" class="px-3 py-4 text-xs text-gray-400 text-center">
+      <div v-if="treeStore.isLoading" class="px-3 py-4 text-xs text-gray-400 text-center">
         加载中...
       </div>
-      <NoteList
-        v-else-if="filteredNotes.length > 0"
-        :notes="filteredNotes"
-        :selected-id="noteStore.selectedNoteId"
-        @select="noteStore.selectNote"
-        @rename="handleRenameNote"
-        @delete="handleDeleteNote"
+      <TreeList
+        v-else-if="filteredNodes.length > 0"
+        :nodes="filteredNodes"
+        :selected-id="treeStore.selectedNodeId"
+        :expanded-paths="treeStore.expandedPaths"
+        @select="handleSelect"
+        @toggle="handleToggle"
+        @rename="handleRename"
+        @delete="handleDelete"
+        @create-note="handleCreateNote"
+        @create-folder="handleCreateFolder"
         @open-in-explorer="handleOpenInExplorer"
       />
       <div v-else-if="categoryStore.selectedCategoryId && searchQuery" class="px-3 py-4 text-xs text-gray-400 text-center">
-        未找到匹配的笔记
+        未找到匹配的内容
       </div>
       <div v-else-if="categoryStore.selectedCategoryId" class="px-3 py-4 text-xs text-gray-400 text-center">
-        暂无笔记
+        暂无笔记或文件夹
       </div>
       <div v-else class="px-3 py-4 text-sm text-gray-400 text-center">
         请选择分类
       </div>
     </div>
 
-    <!-- Create Note Form -->
-    <NoteForm
-      v-if="categoryStore.selectedCategoryId"
-      :is-open="showCreateForm"
-      :category-id="categoryStore.selectedCategoryId"
-      @close="showCreateForm = false"
-      @submit="showCreateForm = false"
+    <!-- Create Note Modal -->
+    <NoteCreateModal
+      :is-open="showCreateNoteModal"
+      :parent-path="createNoteParentPath"
+      @close="showCreateNoteModal = false; createNoteParentPath = ''"
+      @submit="handleCreateNoteSubmit"
+    />
+
+    <!-- Create Folder Modal -->
+    <FolderCreateModal
+      :is-open="showCreateFolderModal"
+      :parent-path="createFolderParentPath"
+      @close="showCreateFolderModal = false; createFolderParentPath = ''"
+      @submit="handleCreateFolderSubmit"
     />
 
     <!-- Rename Modal -->
-    <NoteRenameModal
-      v-if="noteToRename"
+    <TreeNodeRenameModal
+      v-if="nodeToRename"
       :is-open="showRenameModal"
-      :current-title="noteToRename.title"
-      @close="showRenameModal = false; noteToRename = null"
+      :node="nodeToRename"
+      @close="showRenameModal = false; nodeToRename = null"
       @submit="handleRenameSubmit"
     />
 
     <!-- Delete Confirm Dialog -->
     <ConfirmDialog
       :is-open="showDeleteConfirm"
-      title="删除笔记"
-      :message="`确定要删除笔记「${noteToDelete?.title}」吗？此操作将移至回收站。`"
+      :title="nodeToDelete?.type === 'folder' ? '删除文件夹' : '删除笔记'"
+      :message="deleteMessage"
       confirm-text="删除"
-      @cancel="showDeleteConfirm = false; noteToDelete = null"
+      @cancel="showDeleteConfirm = false; nodeToDelete = null"
       @confirm="confirmDelete"
     />
   </div>

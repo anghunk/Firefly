@@ -1,19 +1,17 @@
 <script setup lang="ts">
-import { watch } from 'vue';
-import { useNoteStore, useSettingsStore } from '../../stores';
+import { computed } from 'vue';
+import { useNoteStore, useSettingsStore, useTreeStore } from '../../stores';
 import MarkdownEditor from '../editor/MarkdownEditor.vue';
 
 const noteStore = useNoteStore();
 const settingsStore = useSettingsStore();
+const treeStore = useTreeStore();
 
-// Load note content when selected
-watch(() => noteStore.selectedNoteId, async (noteId) => {
-  if (noteId) {
-    const note = noteStore.notes.find(n => n.id === noteId);
-    if (note) {
-      await noteStore.loadNoteContent(note.path);
-    }
-  }
+// Get selected node path from tree store
+const selectedNodePath = computed(() => {
+  if (!treeStore.selectedNodeId) return '';
+  const node = treeStore.allNodes.find(n => n.id === treeStore.selectedNodeId);
+  return node?.path || '';
 });
 </script>
 
@@ -32,8 +30,8 @@ watch(() => noteStore.selectedNoteId, async (noteId) => {
       v-else-if="noteStore.noteContent"
       :content="noteStore.noteContent.content"
       :show-line-numbers="settingsStore.config.showLineNumbers"
-      :note-path="noteStore.selectedNote?.path || ''"
-      @save="(content) => noteStore.saveNote(noteStore.selectedNote?.path || '', content)"
+      :note-path="selectedNodePath"
+      @save="(content) => noteStore.saveNote(selectedNodePath, content)"
     />
   </div>
 </template>

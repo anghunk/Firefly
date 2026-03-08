@@ -28,6 +28,12 @@ fn main() {
             note::save_note,
             note::delete_note,
             note::rename_note,
+            // Tree node commands
+            note::get_tree_nodes,
+            note::create_folder,
+            note::delete_folder,
+            note::rename_folder,
+            note::create_note_in_folder,
             // Settings commands
             settings::get_app_config,
             settings::save_app_config,
