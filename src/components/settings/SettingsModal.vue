@@ -165,7 +165,7 @@ function setTheme(theme: "light" | "dark" | "system") {
           <div v-show="activeTab === 'about'" class="space-y-4">
             <div>
               <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                萤火 - Firefly
+                萤火笔记 - Firefly
               </h3>
               <a
                 href="https://github.com/anghunk/Firefly"
