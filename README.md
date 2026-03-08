@@ -12,7 +12,7 @@ _捕捉思维的微光_
 
 基于 Tauri 构建的一款轻量、本地优先的笔记工具。无需联网，无需账号。让灵感如萤火般在本地静谧发光。在最私密的安全感中，汇聚你的知识森林。
 
-![](https://github.com/user-attachments/assets/ea6714ba-784e-4353-bbb3-886d86a8197d)
+![](https://github.com/user-attachments/assets/c9d7b8f1-3e2d-47b7-b6b8-924a9babc2b9)
 
 ## 安装
 
