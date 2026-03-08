@@ -16,7 +16,6 @@ _捕捉思维的微光_
 
 ![](https://github.com/user-attachments/assets/ea6714ba-784e-4353-bbb3-886d86a8197d)
 
-
 ## 安装
 
 1. 进入 [Releases](https://github.com/anghunk/Firefly/releases) 选择最新版本下载安装
