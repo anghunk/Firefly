@@ -26,5 +26,6 @@ dist-ssr
 
 # Tauri
 src-tauri/target
+Cargo.lock
 
 .claude
