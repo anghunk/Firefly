@@ -160,14 +160,14 @@ onUnmounted(() => {
 <template>
   <div class="flex flex-col h-full">
     <!-- Status bar -->
-    <div class="flex items-center justify-between px-4 h-8 border-b border-gray-200 dark:border-gray-800">
+    <div class="flex items-center justify-between px-4 h-10 border-b border-gray-200 dark:border-gray-800">
       <button
         @click="togglePreviewMode"
-        class="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+        class="flex items-center gap-1 text-sm text-gray-500 cursor-pointer hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
         :title="isPreviewMode ? '切换到编辑模式' : '切换到预览模式'"
       >
-        <PhEye v-if="isPreviewMode" :size="16" />
-        <PhPencilSimple v-else :size="16" />
+        <!-- <PhEye v-if="isPreviewMode" :size="16" />
+        <PhPencilSimple v-else :size="16" /> -->
         <span>{{ isPreviewMode ? '编辑' : '预览' }}</span>
       </button>
       <span

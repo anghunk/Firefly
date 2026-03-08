@@ -89,16 +89,10 @@ export const useTreeStore = defineStore('tree', () => {
     };
   }
 
-  // Load expanded paths from localStorage
+  // Load expanded paths from localStorage (now defaults to collapsed)
   function loadExpandedPaths() {
-    try {
-      const saved = localStorage.getItem(EXPANDED_PATHS_KEY);
-      if (saved) {
-        expandedPaths.value = new Set(JSON.parse(saved));
-      }
-    } catch {
-      expandedPaths.value = new Set();
-    }
+    // Always start with collapsed state, don't restore from localStorage
+    expandedPaths.value = new Set();
   }
 
   // Save expanded paths to localStorage
