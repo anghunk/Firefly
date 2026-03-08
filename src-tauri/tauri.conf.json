@@ -1,8 +1,8 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "Firefly",
+  "productName": "萤火笔记",
   "version": "0.0.2",
-  "identifier": "com.Firefly",
+  "identifier": "com.firefly",
   "build": {
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build",
@@ -12,13 +12,15 @@
   "app": {
     "security": {
       "csp": null,
-      "capabilities": ["default"]
+      "capabilities": [
+        "default"
+      ]
     },
     "windows": [
       {
         "fullscreen": false,
         "resizable": true,
-        "title": "萤火",
+        "title": "萤火笔记",
         "width": 1100,
         "height": 700
       }
@@ -26,7 +28,9 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["nsis"],
+    "targets": [
+      "nsis"
+    ],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -37,7 +41,10 @@
     "windows": {
       "nsis": {
         "installMode": "both",
-        "languages": ["SimpChinese"]
+        "languages": [
+          "SimpChinese"
+        ],
+        "installerIcon": "icons/icon.ico"
       }
     }
   },

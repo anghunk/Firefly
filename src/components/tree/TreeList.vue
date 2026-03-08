@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, nextTick } from 'vue';
 import type { TreeNode } from '../../types';
 import TreeNodeComponent from './TreeNode.vue';
 import { ContextMenu, ContextMenuItem } from '../common';
 import { useContextMenu } from '../../composables/useContextMenu';
 
-defineProps<{
+const props = defineProps<{
   nodes: TreeNode[];
   selectedId: string | null;
   expandedPaths: Set<string>;
@@ -15,6 +15,8 @@ const emit = defineEmits<{
   select: [id: string];
   toggle: [path: string];
   rename: [node: TreeNode];
+  renameSubmit: [node: TreeNode, newName: string];
+  renameCancel: [];
   delete: [node: TreeNode];
   createNote: [parentPath: string];
   createFolder: [parentPath: string];
@@ -28,6 +30,11 @@ const contextMenuNode = ref<TreeNode | null>(null);
 const contextMenuX = ref(0);
 const contextMenuY = ref(0);
 
+// Inline editing state
+const editingNodeId = ref<string | null>(null);
+const pendingActions = ref<Array<() => void>>([]);
+const isSavingRename = ref(false);
+
 onMounted(() => {
   window.addEventListener('close-context-menu', handleCloseContextMenu);
 });
@@ -40,15 +47,39 @@ function handleCloseContextMenu() {
   contextMenuNode.value = null;
 }
 
+async function executePendingActions() {
+  const actions = [...pendingActions.value];
+  pendingActions.value = [];
+  await nextTick();
+  for (const action of actions) {
+    action();
+  }
+}
+
 function handleContextMenu(node: TreeNode, e: MouseEvent) {
   e.preventDefault();
-  contextMenuNode.value = null;
-  requestAnimationFrame(() => {
-    contextMenuX.value = e.clientX;
-    contextMenuY.value = e.clientY;
-    contextMenuNode.value = node;
-    openMenu(MENU_ID);
-  });
+  e.stopPropagation();
+
+  // If currently editing or saving, queue this action
+  if (editingNodeId.value || isSavingRename.value) {
+    pendingActions.value.push(() => {
+      contextMenuNode.value = null;
+      requestAnimationFrame(() => {
+        contextMenuX.value = e.clientX;
+        contextMenuY.value = e.clientY;
+        contextMenuNode.value = node;
+        openMenu(MENU_ID);
+      });
+    });
+  } else {
+    contextMenuNode.value = null;
+    requestAnimationFrame(() => {
+      contextMenuX.value = e.clientX;
+      contextMenuY.value = e.clientY;
+      contextMenuNode.value = node;
+      openMenu(MENU_ID);
+    });
+  }
 }
 
 function closeContextMenu() {
@@ -58,9 +89,51 @@ function closeContextMenu() {
 
 function handleRename() {
   if (contextMenuNode.value) {
-    emit('rename', contextMenuNode.value);
+    editingNodeId.value = contextMenuNode.value.id;
   }
   closeContextMenu();
+}
+
+async function handleInlineRenameSubmit(newName: string) {
+  isSavingRename.value = true;
+  try {
+    if (editingNodeId.value) {
+      const node = props.nodes.find(n => n.id === editingNodeId.value);
+      if (node) {
+        await emit('renameSubmit', node, newName);
+      }
+    }
+    editingNodeId.value = null;
+    // Execute any pending actions after rename completes
+    await executePendingActions();
+  } finally {
+    isSavingRename.value = false;
+  }
+}
+
+async function handleInlineRenameCancel() {
+  editingNodeId.value = null;
+  await nextTick();
+  // Execute any pending actions after cancel
+  await executePendingActions();
+}
+
+function handleSelect(id: string) {
+  // If editing or saving, queue this action
+  if (editingNodeId.value || isSavingRename.value) {
+    pendingActions.value.push(() => emit('select', id));
+  } else {
+    emit('select', id);
+  }
+}
+
+function handleToggle(path: string) {
+  // If editing or saving, queue this action
+  if (editingNodeId.value || isSavingRename.value) {
+    pendingActions.value.push(() => emit('toggle', path));
+  } else {
+    emit('toggle', path);
+  }
 }
 
 function handleDelete() {
@@ -91,6 +164,13 @@ function handleOpenInExplorer() {
   closeContextMenu();
 }
 
+function handleDoubleClick(node: TreeNode) {
+  // Only allow double-click rename on files, not folders
+  if (node.type === 'file') {
+    editingNodeId.value = node.id;
+  }
+}
+
 function isExpanded(path: string, expandedPaths: Set<string>): boolean {
   return expandedPaths.has(path);
 }
@@ -105,14 +185,18 @@ function isExpanded(path: string, expandedPaths: Set<string>): boolean {
       :is-selected="node.id === selectedId"
       :is-context-menu-active="contextMenuNode?.id === node.id"
       :is-expanded="isExpanded(node.path, expandedPaths)"
-      @click="emit('select', node.id)"
-      @toggle="emit('toggle', node.path)"
+      :is-editing="node.id === editingNodeId"
+      @click="handleSelect(node.id)"
+      @toggle="handleToggle(node.path)"
+      @dblclick="handleDoubleClick(node)"
       @rename="emit('rename', node)"
       @delete="emit('delete', node)"
       @create-note="emit('createNote', node.path)"
       @create-folder="emit('createFolder', node.path)"
       @open-in-explorer="emit('openInExplorer', node)"
       @contextmenu="(e) => handleContextMenu(node, e)"
+      @rename-submit="handleInlineRenameSubmit"
+      @rename-cancel="handleInlineRenameCancel"
     />
 
     <!-- Context Menu -->

@@ -87,6 +87,15 @@ async function handleRenameSubmit(newName: string) {
   }
 }
 
+// Handle inline rename from TreeList
+async function handleInlineRenameSubmit(node: TreeNode, newName: string) {
+  await treeStore.renameNode(node.path, newName, node.type);
+}
+
+function handleInlineRenameCancel() {
+  // Nothing to do, just cancel editing
+}
+
 // Handle delete
 function handleDelete(node: TreeNode) {
   nodeToDelete.value = node;
@@ -199,6 +208,8 @@ async function handleOpenInExplorer(node: TreeNode) {
         @select="handleSelect"
         @toggle="handleToggle"
         @rename="handleRename"
+        @rename-submit="handleInlineRenameSubmit"
+        @rename-cancel="handleInlineRenameCancel"
         @delete="handleDelete"
         @create-note="handleCreateNote"
         @create-folder="handleCreateFolder"

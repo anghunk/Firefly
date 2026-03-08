@@ -141,7 +141,7 @@ const deletingCategory = () => {
         @rename="handleRenameCategory"
         @delete="handleDeleteCategory"
       />
-      <div v-else class="px-3 py-4 text-xs text-gray-400 text-center">
+      <div v-else class="px-3 py-4 text-sm text-gray-400 text-center">
         暂无分类
       </div>
     </div>
