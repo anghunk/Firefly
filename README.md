@@ -14,7 +14,8 @@ _捕捉思维的微光_
 
 开发 ing...
 
-![](https://github.com/user-attachments/assets/383017c0-9ca6-4f2e-96b7-05bece734f02)
+![](https://github.com/user-attachments/assets/ea6714ba-784e-4353-bbb3-886d86a8197d)
+
 
 ## 安装
 
