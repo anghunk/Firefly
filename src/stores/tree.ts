@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { invoke } from '@tauri-apps/api/core';
-import type { TreeNode, CreateFolderRequest, CreateNoteInFolderRequest } from '../types';
+import type { TreeNode } from '../types';
 
 // Raw API response types (snake_case from Rust)
 interface RawTreeNode {
@@ -53,7 +53,6 @@ export const useTreeStore = defineStore('tree', () => {
       const parentPath = node.path.substring(0, node.path.lastIndexOf(node.type === 'file' ? '\\' : '/'));
       if (parentPath && !expandedPaths.value.has(parentPath)) {
         // Check if this is a direct child of a collapsed folder
-        const parentDepth = node.depth - 1;
         for (const hiddenPath of hiddenPaths) {
           if (node.path.startsWith(hiddenPath)) {
             isHidden = true;
