@@ -1,0 +1,200 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  release:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: 'macos-latest'
+            args: '--target universal-apple-darwin'
+          - platform: 'macos-latest'
+            args: '--target aarch64-apple-darwin'
+          - platform: 'macos-latest'
+            args: '--target x86_64-apple-darwin'
+          - platform: 'ubuntu-20.04'
+            args: ''
+          - platform: 'windows-latest'
+            args: ''
+
+    runs-on: ${{ matrix.platform }}
+    if: github.repository == 'anghunk/Firefly'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin,universal-apple-darwin' || '' }}
+
+      - name: Install Linux dependencies
+        if: matrix.platform == 'ubuntu-20.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libayatana-appindicator3-dev librsvg2-dev
+
+      - name: Install frontend dependencies
+        run: npm install
+
+      - name: Get package.json version
+        shell: bash
+        run: echo "PACKAGE_VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_ENV
+
+      - name: Get latest release version
+        shell: bash
+        run: |
+          curl -s https://api.github.com/repos/${{ github.repository }}/releases/latest | jq -r '.tag_name' > latest_release.txt
+
+      - name: Compare versions
+        shell: bash
+        run: |
+          if [ "$(cat latest_release.txt)" != "v$PACKAGE_VERSION" ]; then
+            echo "Version mismatch"
+            echo "create_release=true" >> $GITHUB_ENV
+          else
+            echo "Version matches"
+            echo "create_release=false" >> $GITHUB_ENV
+          fi
+
+      - name: Build Tauri app
+        if: env.create_release == 'true'
+        run: npm run tauri build ${{ matrix.args }}
+
+      - name: Upload artifacts
+        if: env.create_release == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: firefly-${{ matrix.platform }}-${{ hashFiles('**/Cargo.lock') }}
+          path: |
+            src-tauri/target/release/bundle/
+            src-tauri/target/aarch64-apple-darwin/release/bundle/
+            src-tauri/target/x86_64-apple-darwin/release/bundle/
+            src-tauri/target/universal-apple-darwin/release/bundle/
+          retention-days: 7
+
+  create_release:
+    needs: release
+    runs-on: ubuntu-latest
+    if: github.repository == 'anghunk/Firefly'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Get package.json version
+        shell: bash
+        run: echo "PACKAGE_VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_ENV
+
+      - name: Get latest release version
+        shell: bash
+        run: |
+          curl -s https://api.github.com/repos/${{ github.repository }}/releases/latest | jq -r '.tag_name' > latest_release.txt
+
+      - name: Compare versions
+        shell: bash
+        run: |
+          if [ "$(cat latest_release.txt)" != "v$PACKAGE_VERSION" ]; then
+            echo "Version mismatch"
+            echo "create_release=true" >> $GITHUB_ENV
+          else
+            echo "Version matches"
+            echo "create_release=false" >> $GITHUB_ENV
+          fi
+
+      - name: Generate Changelog
+        if: env.create_release == 'true'
+        shell: bash
+        run: |
+          # 设置日期（上海时区）
+          CURRENT_DATE=$(TZ='Asia/Shanghai' date +'%Y-%m-%d %H:%M')
+
+          # 创建 CHANGELOG.md
+          cat > CHANGELOG.md << 'EOF'
+          ### 安装方式
+
+          ## Windows
+          - **NSIS 安装包**: 双击运行安装程序
+          - **MSI 安装包**: 双击运行 Windows Installer
+
+          ## macOS
+          - **DMG 磁盘映像**: 拖拽到应用程序文件夹
+          - **App Bundle**: 解压后直接使用
+
+          ## Linux
+          - **DEB 包**: 使用 `sudo dpkg -i *.deb` 安装
+          - **AppImage**: 赋予执行权限 `chmod +x *.AppImage` 后运行
+
+          支持 x64 和 ARM64 架构。
+
+          ---
+
+          **发布时间**: $CURRENT_DATE
+          EOF
+
+          sed -i "s/\$CURRENT_DATE/$CURRENT_DATE/g" CHANGELOG.md
+          cat CHANGELOG.md
+
+      - name: Create Release
+        if: env.create_release == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # 准备所有打包文件的参数
+          FILES=""
+
+          # Windows 文件
+          for file in artifacts/**/bundle/nsis/*.exe; do
+            if [ -f "$file" ]; then
+              FILES="$FILES \"$file\""
+            fi
+          done
+
+          # macOS 文件
+          for file in artifacts/**/bundle/dmg/*.dmg; do
+            if [ -f "$file" ]; then
+              FILES="$FILES \"$file\""
+            fi
+          done
+          for file in artifacts/**/bundle/macos/*.app.zip; do
+            if [ -f "$file" ]; then
+              FILES="$FILES \"$file\""
+            fi
+          done
+
+          # Linux 文件
+          for file in artifacts/**/bundle/deb/*.deb; do
+            if [ -f "$file" ]; then
+              FILES="$FILES \"$file\""
+            fi
+          done
+          for file in artifacts/**/bundle/appimage/*.AppImage; do
+            if [ -f "$file" ]; then
+              FILES="$FILES \"$file\""
+            fi
+          done
+
+          # 创建发布（使用 --generate-notes 自动生成 Full Changelog 链接）
+          eval gh release create "v$PACKAGE_VERSION" \
+            --generate-notes \
+            -t "v$PACKAGE_VERSION" \
+            -n "$(cat CHANGELOG.md)" \
+            $FILES
