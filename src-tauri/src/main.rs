@@ -6,12 +6,67 @@ mod models;
 mod services;
 
 use commands::{category, note, settings};
+use tauri::{
+    menu::{Menu, MenuItem, PredefinedMenuItem},
+    tray::{TrayIconBuilder, TrayIconEvent, MouseButton},
+    image::Image,
+    Manager,
+};
 
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
+        .setup(|app| {
+            let quit_item = MenuItem::with_id(app, "quit", "退出", true, None::<&str>)?;
+            let show_item = MenuItem::with_id(app, "show", "显示窗口", true, None::<&str>)?;
+            let separator = PredefinedMenuItem::separator(app)?;
+            let menu = Menu::with_items(app, &[&show_item, &separator, &quit_item])?;
+
+            let icon_path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                .join("icons")
+                .join("32x32.png");
+
+            let img = image::open(&icon_path)?.to_rgba8();
+            let (width, height) = img.dimensions();
+            let icon = Image::new_owned(img.into_raw(), width, height);
+
+            let _tray = TrayIconBuilder::with_id("main")
+                .menu(&menu)
+                .icon(icon)
+                .show_menu_on_left_click(false)
+                .on_tray_icon_event(|tray, event| match event {
+                    TrayIconEvent::Click {
+                        id: _,
+                        position: _,
+                        rect: _,
+                        button,
+                        button_state: _,
+                    } => {
+                        if button == MouseButton::Left {
+                            let app = tray.app_handle();
+                            if let Some(window) = app.get_webview_window("main") {
+                                window.show().unwrap();
+                                window.unminimize().unwrap();
+                                window.set_focus().unwrap();
+                            }
+                        }
+                    }
+                    TrayIconEvent::DoubleClick { .. } => {
+                        let app = tray.app_handle();
+                        if let Some(window) = app.get_webview_window("main") {
+                            window.show().unwrap();
+                            window.unminimize().unwrap();
+                            window.set_focus().unwrap();
+                        }
+                    }
+                    _ => {}
+                })
+                .build(app)?;
+
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             // Category commands
             category::get_categories,
@@ -42,6 +97,19 @@ fn main() {
             settings::set_notes_directory,
             settings::is_valid_workspace,
         ])
+        .on_menu_event(|app, event| match event.id().as_ref() {
+            "quit" => {
+                app.exit(0);
+            }
+            "show" => {
+                if let Some(window) = app.get_webview_window("main") {
+                    window.show().unwrap();
+                    window.unminimize().unwrap();
+                    window.set_focus().unwrap();
+                }
+            }
+            _ => {}
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

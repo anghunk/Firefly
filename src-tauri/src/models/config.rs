@@ -8,6 +8,8 @@ pub struct AppConfig {
     pub last_notes_directory: String,
     /// UI theme preference (local to device)
     pub theme: String,
+    /// Minimize to tray when closing window
+    pub minimize_to_tray: bool,
 }
 
 impl Default for AppConfig {
