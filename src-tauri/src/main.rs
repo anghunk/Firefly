@@ -42,6 +42,7 @@ fn main() {
             let _tray = TrayIconBuilder::with_id("main")
                 .menu(&menu)
                 .icon(icon)
+                .tooltip("萤火笔记")
                 .show_menu_on_left_click(false)
                 .on_tray_icon_event(|tray, event| match event {
                     TrayIconEvent::Click {
