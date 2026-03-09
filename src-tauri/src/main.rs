@@ -31,11 +31,8 @@ fn main() {
             let separator = PredefinedMenuItem::separator(app)?;
             let menu = Menu::with_items(app, &[&show_item, &separator, &quit_item])?;
 
-            let icon_path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-                .join("icons")
-                .join("32x32.png");
-
-            let img = image::open(&icon_path)?.to_rgba8();
+            let icon_bytes = include_bytes!("../icons/32x32.png");
+            let img = image::load_from_memory(icon_bytes)?.to_rgba8();
             let (width, height) = img.dimensions();
             let icon = Image::new_owned(img.into_raw(), width, height);
 
