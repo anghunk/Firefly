@@ -23,6 +23,7 @@
     "github-markdown-css": "^5.9.0",
     "gray-matter": "^4.0.3",
     "markdown-it": "^14.1.0",
+    "markdown-it-task-lists": "^2.1.1",
     "pinia": "^3.0.2",
     "vue": "^3.4.0"
   },

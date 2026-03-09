@@ -21,6 +21,7 @@ const emit = defineEmits<{
 }>();
 
 const editorContainer = ref<HTMLElement | null>(null);
+const previewContainer = ref<HTMLElement | null>(null);
 const editorView = shallowRef<EditorView | null>(null);
 const lineNumbersCompartment = new Compartment();
 const themeCompartment = new Compartment();
@@ -117,7 +118,76 @@ function schedulePreviewRender() {
   renderTimeout = setTimeout(() => {
     debouncedRenderContent.value = renderMarkdown(currentDocContent.value);
     isRenderingPreview.value = false;
+    nextTick(() => {
+      // Attach checkbox listeners after rendering
+      attachCheckboxListeners();
+    });
   }, 150); // Debounce preview rendering by 150ms
+}
+
+// Handle checkbox change in preview mode
+function handleCheckboxChange(event: Event) {
+  const checkbox = event.target as HTMLInputElement;
+  const li = checkbox.closest('li.task-list-item') as HTMLLIElement | null;
+  if (!li) return;
+
+  const ul = li.parentElement;
+  if (!ul) return;
+
+  // Find the index of this checkbox in the list
+  const lis = Array.from(ul.children).filter(
+    (child): child is HTMLLIElement => child.tagName === 'LI'
+  );
+  const checkboxIndex = lis.indexOf(li);
+
+  // Find all checkboxes in the current document
+  const lines = currentDocContent.value.split('\n');
+  let checkboxCount = 0;
+  const newChecked = checkbox.checked ? '[x]' : '[ ]';
+
+  // Find and update the matching checkbox line
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (/^\s*[-*+]\s+\[([ x])\]/.test(line)) {
+      if (checkboxCount === checkboxIndex) {
+        // Found the matching checkbox line
+        lines[i] = line.replace(/^\s*([-*+]\s+)\[([ x])\]/, `$1${newChecked}`);
+        break;
+      }
+      checkboxCount++;
+    }
+  }
+
+  const newContent = lines.join('\n');
+  currentDocContent.value = newContent;
+
+  // Update editor
+  if (editorView.value) {
+    editorView.value.dispatch({
+      changes: {
+        from: 0,
+        to: editorView.value.state.doc.length,
+        insert: newContent,
+      },
+    });
+  }
+
+  // Save and re-render
+  debouncedSave(newContent);
+  debouncedRenderContent.value = renderMarkdown(newContent);
+  nextTick(() => {
+    // Re-attach listeners after re-rendering
+    attachCheckboxListeners();
+  });
+}
+
+// Attach checkbox listeners to preview content
+function attachCheckboxListeners() {
+  if (!previewContainer.value) return;
+  const checkboxes = previewContainer.value.querySelectorAll('input[type="checkbox"]');
+  checkboxes.forEach((checkbox) => {
+    checkbox.addEventListener('change', handleCheckboxChange);
+  });
 }
 
 function togglePreviewMode() {
@@ -127,6 +197,10 @@ function togglePreviewMode() {
   // When switching to preview mode, render immediately
   if (!wasPreview && isPreviewMode.value) {
     debouncedRenderContent.value = renderMarkdown(currentDocContent.value);
+    nextTick(() => {
+      // Attach checkbox listeners after rendering
+      attachCheckboxListeners();
+    });
   } else if (wasPreview && !isPreviewMode.value) {
     // Clear preview when switching back to edit mode to free memory
     debouncedRenderContent.value = '';
@@ -296,7 +370,7 @@ onUnmounted(() => {
         <PhPencilSimple v-else :size="16" /> -->
         <span>{{ isPreviewMode ? '编辑' : '预览' }}</span>
       </button>
-      <span
+      <!-- <span
         :class="[
           'text-xs',
           saveStatus === 'saved' && 'text-gray-400',
@@ -305,14 +379,14 @@ onUnmounted(() => {
         ]"
       >
         {{ saveStatus === 'saved' ? '已保存' : saveStatus === 'saving' ? '保存中...' : '已修改' }}
-      </span>
+      </span> -->
     </div>
 
     <!-- Editor -->
     <div v-show="!isPreviewMode" ref="editorContainer" class="flex-1 overflow-hidden" />
 
     <!-- Preview -->
-    <div v-show="isPreviewMode" class="flex-1 overflow-auto p-4">
+    <div v-show="isPreviewMode" ref="previewContainer" class="flex-1 overflow-auto p-4">
       <article class="markdown-body max-w-none" v-html="renderedContent" />
     </div>
 
@@ -341,11 +415,6 @@ onUnmounted(() => {
   background-color: rgba(59, 130, 246, 0.3) !important;
 }
 
-/* Markdown preview container */
-.markdown-body {
-  font-family: "Noto Sans SC", ui-sans-serif, system-ui, -apple-system, sans-serif;
-}
-
 /* Dark mode support for github-markdown-css */
 .dark .markdown-body {
   color-scheme: dark;
@@ -363,5 +432,17 @@ onUnmounted(() => {
   --color-attention-fg: #d29922;
   --color-danger-fg: #f85149;
   --color-done-fg: #a371f7;
+}
+
+/* Checkbox list styling - remove bullets */
+.markdown-body li.task-list-item {
+  list-style-type: none;
+  display: flex;
+  align-items: flex-start;
+}
+
+.markdown-body li.task-list-item::marker {
+  content: '';
+  display: none;
 }
 </style>
