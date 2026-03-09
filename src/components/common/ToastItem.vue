@@ -40,10 +40,10 @@ const textColorClasses: Record<string, string> = {
 
 <template>
   <div
-    class="flex items-center gap-3 px-4 py-3 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700"
+    class="flex items-center gap-3 px-4 py-3 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 min-w-[280px] max-w-md"
   >
     <div
-      :class="['flex items-center justify-center w-8 h-8 rounded-full', iconBgClasses[toast.type]]"
+      :class="['flex items-center justify-center w-8 h-8 rounded-full flex-shrink-0', iconBgClasses[toast.type]]"
     >
       <span :class="['text-sm font-bold', textColorClasses[toast.type]]">
         {{ typeIcons[toast.type] }}
@@ -53,7 +53,7 @@ const textColorClasses: Record<string, string> = {
       {{ toast.message }}
     </p>
     <button
-      class="flex items-center justify-center w-6 h-6 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+      class="flex items-center justify-center w-6 h-6 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors flex-shrink-0"
       @click="emit('close')"
     >
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
