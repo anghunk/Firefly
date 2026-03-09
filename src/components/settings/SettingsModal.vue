@@ -8,6 +8,7 @@ import {
   PhInfo,
 } from "@phosphor-icons/vue";
 import { useSettingsStore } from "../../stores";
+import { useUpdateChecker } from "../../composables/useUpdateChecker";
 import { Modal, Button, Input } from "../common";
 import * as pkg from "../../../package.json";
 
@@ -20,10 +21,12 @@ const emit = defineEmits<{
 }>();
 
 const settingsStore = useSettingsStore();
+const { updateInfo, checkForUpdates } = useUpdateChecker();
 
 const localConfig = ref({ ...settingsStore.config });
 const isLoading = ref(false);
 const activeTab = ref("storage");
+const isCheckingUpdate = ref(false);
 
 // 设置分类
 const tabs = [
@@ -58,9 +61,18 @@ async function handleSave() {
   }
 }
 
-function setTheme(theme: "light" | "dark" | "system") {
+async function setTheme(theme: "light" | "dark" | "system") {
   localConfig.value.theme = theme;
   settingsStore.setTheme(theme);
+}
+
+async function handleCheckUpdate() {
+  isCheckingUpdate.value = true;
+  try {
+    await checkForUpdates();
+  } finally {
+    isCheckingUpdate.value = false;
+  }
 }
 </script>
 
@@ -184,12 +196,14 @@ function setTheme(theme: "light" | "dark" | "system") {
               <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
                 萤火笔记 - Firefly
               </h3>
-              <a
-                href="https://github.com/anghunk/Firefly"
-                target="_blank"
-                class="text-sm text-gray-500 dark:text-gray-400 mt-1 hover:underline"
-                >v {{ pkg.version }}</a
-              >
+              <div class="flex items-center gap-3 mt-2">
+                <a href="https://github.com/anghunk/Firefly" target="_blank" class="text-xs dark:text-gray-400 bg-[var(--color-yellow-500)] text-white rounded-full px-2 py-0.5">
+                  v {{ pkg.version }}
+                </a>
+                <span v-if="updateInfo.isUpdateAvailable" class="text-gray-500 text-sm">
+                  新版本可用 (v{{ updateInfo.latestVersion }})
+                </span>
+              </div>
               <p class="text-sm text-gray-500 dark:text-gray-400 mt-4">
                 捕捉思维的微光。
               </p>
@@ -197,6 +211,13 @@ function setTheme(theme: "light" | "dark" | "system") {
                 基于 Tauri
                 构建的一款轻量、本地优先的笔记工具。无需联网，无需账号，让灵感如萤火般在本地静谧发光。在最私密的安全感中，汇聚你的知识森林。
               </p>
+            </div>
+            <div class="pt-2 space-y-2">
+              <div class="flex gap-2">
+                <Button variant="secondary" :loading="isCheckingUpdate" @click="handleCheckUpdate">
+                  检查更新
+                </Button>
+              </div>
             </div>
           </div>
 

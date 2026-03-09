@@ -1,6 +1,6 @@
 [package]
 name = "Firefly"
-version = "0.0.5"
+version = "0.0.6"
 description = "A Markdown Note-taking App"
 authors = ["you"]
 license = ""
