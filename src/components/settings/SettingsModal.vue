@@ -77,7 +77,7 @@ function setTheme(theme: "light" | "dark" | "system") {
               :class="[
                 'w-full flex items-center gap-2 px-4 py-2 text-base text-left transition-colors',
                 activeTab === tab.id
-                  ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 border-r-2 border-blue-600 dark:border-blue-400'
+                  ? 'bg-white dark:bg-gray-700 text-[var(--color-yellow-600)] border-r-2 border-[var(--color-yellow-500)]'
                   : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50',
               ]"
               @click="activeTab = tab.id"
@@ -153,7 +153,7 @@ function setTheme(theme: "light" | "dark" | "system") {
                   class="sr-only peer"
                 />
                 <div
-                  class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-500 peer-checked:bg-blue-600"
+                  class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[var(--color-yellow-300)] dark:peer-focus:ring-[var(--color-yellow-800)] rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-500 peer-checked:bg-[var(--color-yellow-500)]"
                 ></div>
               </label>
             </div>
@@ -172,7 +172,7 @@ function setTheme(theme: "light" | "dark" | "system") {
                   class="sr-only peer"
                 />
                 <div
-                  class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-500 peer-checked:bg-blue-600"
+                  class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[var(--color-yellow-300)] dark:peer-focus:ring-[var(--color-yellow-800)] rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-500 peer-checked:bg-[var(--color-yellow-500)]"
                 ></div>
               </label>
             </div>
