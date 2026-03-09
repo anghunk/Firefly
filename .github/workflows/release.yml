@@ -29,7 +29,6 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            src-tauri/target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-
@@ -61,15 +60,17 @@ jobs:
         if: env.create_release == 'true'
         run: npm run tauri:build
 
-      - name: Find built files
+      - name: Find and rename built files
         if: env.create_release == 'true'
         id: find_files
         shell: bash
         run: |
           # Find NSIS installer
           INSTALLER=$(find src-tauri/target/release/bundle/nsis -name "*.exe" -type f | head -n 1)
-          echo "installer=$INSTALLER" >> $GITHUB_OUTPUT
-          echo "Found installer: $INSTALLER"
+          RENAMED_INSTALLER="src-tauri/target/release/bundle/nsis/萤火笔记_${PACKAGE_VERSION}_x64-setup.exe"
+          mv "$INSTALLER" "$RENAMED_INSTALLER"
+          echo "installer=$RENAMED_INSTALLER" >> $GITHUB_OUTPUT
+          echo "Renamed installer: $RENAMED_INSTALLER"
 
       - name: Create Release
         if: env.create_release == 'true'

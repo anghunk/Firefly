@@ -44,7 +44,11 @@
         "languages": [
           "SimpChinese"
         ],
-        "installerIcon": "icons/icon.ico"
+        "installerIcon": "icons/icon.ico",
+        "displayLanguageSelector": true
+      },
+      "webviewInstallMode": {
+        "type": "embedBootstrapper"
       }
     }
   },
