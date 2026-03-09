@@ -18,7 +18,7 @@ const selectedNodePath = computed(() => {
 async function handleNoteRenamed(newTitle: string) {
   if (!selectedNodePath.value) return;
   try {
-    await treeStore.renameNode(selectedNodePath.value, 'file', newTitle);
+    await treeStore.renameNode(selectedNodePath.value, newTitle, 'file');
   } catch (e) {
     console.error('更新树节点失败:', e);
   }
