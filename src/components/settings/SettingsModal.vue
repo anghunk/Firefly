@@ -50,6 +50,7 @@ async function handleSave() {
   try {
     settingsStore.config.notesDirectory = localConfig.value.notesDirectory;
     settingsStore.config.showLineNumbers = localConfig.value.showLineNumbers;
+    settingsStore.config.minimizeToTray = localConfig.value.minimizeToTray;
     await settingsStore.saveConfig();
     emit("close");
   } finally {
@@ -118,7 +119,7 @@ function setTheme(theme: "light" | "dark" | "system") {
           </div>
 
           <!-- 通用设置 -->
-          <div v-show="activeTab === 'general'" class="space-y-5">
+          <div v-show="activeTab === 'general'" class="space-y-6">
             <h4 class="text-base font-medium text-gray-900 dark:text-gray-100">主题</h4>
             <div class="flex gap-3">
               <Button
@@ -139,6 +140,22 @@ function setTheme(theme: "light" | "dark" | "system") {
               >
                 跟随系统
               </Button>
+            </div>
+
+            <div class="flex items-center justify-between">
+              <label class="text-base font-medium text-gray-900 dark:text-gray-100"
+                >关闭时最小化到托盘</label
+              >
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input
+                  v-model="localConfig.minimizeToTray"
+                  type="checkbox"
+                  class="sr-only peer"
+                />
+                <div
+                  class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-500 peer-checked:bg-blue-600"
+                ></div>
+              </label>
             </div>
           </div>
 

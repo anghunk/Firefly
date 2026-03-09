@@ -5,11 +5,26 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppConfig {
     /// Last opened notes directory
+    #[serde(default = "default_last_notes_directory")]
     pub last_notes_directory: String,
     /// UI theme preference (local to device)
+    #[serde(default = "default_theme")]
     pub theme: String,
     /// Minimize to tray when closing window
+    #[serde(default = "default_minimize_to_tray")]
     pub minimize_to_tray: bool,
+}
+
+fn default_last_notes_directory() -> String {
+    String::new()
+}
+
+fn default_theme() -> String {
+    "system".to_string()
+}
+
+fn default_minimize_to_tray() -> bool {
+    true
 }
 
 impl Default for AppConfig {
@@ -17,6 +32,7 @@ impl Default for AppConfig {
         Self {
             last_notes_directory: String::new(),
             theme: "system".to_string(),
+            minimize_to_tray: true,
         }
     }
 }
@@ -26,7 +42,12 @@ impl Default for AppConfig {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WorkspaceConfig {
     /// Show line numbers
+    #[serde(default = "default_show_line_numbers")]
     pub show_line_numbers: bool,
+}
+
+fn default_show_line_numbers() -> bool {
+    true
 }
 
 impl Default for WorkspaceConfig {
@@ -43,4 +64,16 @@ pub struct FullConfig {
     pub notes_directory: String,
     pub theme: String,
     pub show_line_numbers: bool,
+    pub minimize_to_tray: bool,
+}
+
+impl Default for FullConfig {
+    fn default() -> Self {
+        Self {
+            notes_directory: String::new(),
+            theme: "system".to_string(),
+            show_line_numbers: true,
+            minimize_to_tray: false,
+        }
+    }
 }

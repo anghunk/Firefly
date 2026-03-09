@@ -1,6 +1,6 @@
 use crate::models::FullConfig;
 use crate::services::config_service;
-use tauri::AppHandle;
+use tauri::{AppHandle, Manager};
 use tauri_plugin_dialog::DialogExt;
 
 #[tauri::command]
@@ -42,6 +42,22 @@ pub fn select_notes_directory(app: AppHandle) -> Result<Option<String>, String> 
 pub fn set_notes_directory(notes_dir: String) -> Result<(), String> {
     config_service::set_notes_directory(&notes_dir)
         .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn get_minimize_to_tray() -> Result<bool, String> {
+    config_service::get_app_config()
+        .map(|c| c.minimize_to_tray)
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn set_minimize_to_tray(app: AppHandle, value: bool) -> Result<(), String> {
+    // Update app state
+    if let Some(state) = app.try_state::<crate::AppState>() {
+        *state.minimize_to_tray.lock().unwrap() = value;
+    }
+    Ok(())
 }
 
 #[tauri::command]

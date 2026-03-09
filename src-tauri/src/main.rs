@@ -6,12 +6,19 @@ mod models;
 mod services;
 
 use commands::{category, note, settings};
+use std::sync::Arc;
 use tauri::{
     menu::{Menu, MenuItem, PredefinedMenuItem},
     tray::{TrayIconBuilder, TrayIconEvent, MouseButton},
     image::Image,
     Manager,
+    WindowEvent,
 };
+
+#[derive(Clone)]
+pub struct AppState {
+    pub minimize_to_tray: Arc<std::sync::Mutex<bool>>,
+}
 
 fn main() {
     tauri::Builder::default()
@@ -65,6 +72,12 @@ fn main() {
                 })
                 .build(app)?;
 
+            // Load minimize to tray setting
+            let minimize_to_tray = settings::get_minimize_to_tray().unwrap_or(false);
+            app.manage(AppState {
+                minimize_to_tray: Arc::new(std::sync::Mutex::new(minimize_to_tray)),
+            });
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -96,6 +109,8 @@ fn main() {
             settings::select_notes_directory,
             settings::set_notes_directory,
             settings::is_valid_workspace,
+            settings::get_minimize_to_tray,
+            settings::set_minimize_to_tray,
         ])
         .on_menu_event(|app, event| match event.id().as_ref() {
             "quit" => {
@@ -109,6 +124,21 @@ fn main() {
                 }
             }
             _ => {}
+        })
+        .on_window_event(|app, event| {
+            if let WindowEvent::CloseRequested { api, .. } = event {
+                if let Some(state) = app.try_state::<AppState>() {
+                    let minimize_to_tray = *state.minimize_to_tray.lock().unwrap();
+                    if minimize_to_tray {
+                        // Prevent default close behavior
+                        api.prevent_close();
+                        // Hide window instead
+                        if let Some(window) = app.get_webview_window("main") {
+                            let _ = window.hide();
+                        }
+                    }
+                }
+            }
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

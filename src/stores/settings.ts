@@ -18,12 +18,14 @@ export const useSettingsStore = defineStore('settings', () => {
         notes_directory: string;
         theme: string;
         show_line_numbers: boolean;
+        minimize_to_tray: boolean;
       }>('get_app_config');
 
       config.value = {
         notesDirectory: result.notes_directory,
         theme: result.theme as AppConfig['theme'],
         showLineNumbers: result.show_line_numbers,
+        minimizeToTray: result.minimize_to_tray,
       };
       isInitialized.value = true;
 
@@ -53,7 +55,12 @@ export const useSettingsStore = defineStore('settings', () => {
           notes_directory: config.value.notesDirectory,
           theme: config.value.theme,
           show_line_numbers: config.value.showLineNumbers,
+          minimize_to_tray: config.value.minimizeToTray,
         },
+      });
+      // Update app state for minimize to tray setting
+      await invoke('set_minimize_to_tray', {
+        value: config.value.minimizeToTray,
       });
     } catch (e) {
       error.value = String(e);

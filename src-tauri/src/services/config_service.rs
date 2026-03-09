@@ -156,6 +156,7 @@ pub fn get_full_config() -> Result<FullConfig, ConfigError> {
         return Ok(FullConfig {
             notes_directory: String::new(),
             theme: app_config.theme,
+            minimize_to_tray: app_config.minimize_to_tray,
             ..WorkspaceConfig::default().into()
         });
     } else {
@@ -172,6 +173,7 @@ pub fn get_full_config() -> Result<FullConfig, ConfigError> {
     Ok(FullConfig {
         notes_directory: notes_dir,
         theme: app_config.theme,
+        minimize_to_tray: app_config.minimize_to_tray,
         show_line_numbers: workspace_config.show_line_numbers,
     })
 }
@@ -191,11 +193,11 @@ pub fn set_notes_directory(notes_dir: &str) -> Result<(), ConfigError> {
 
 /// Save full config (splits between local and workspace)
 pub fn save_full_config(config: &FullConfig) -> Result<(), ConfigError> {
-    // Save local config
-    let app_config = AppConfig {
-        last_notes_directory: config.notes_directory.clone(),
-        theme: config.theme.clone(),
-    };
+    // Save local config (including minimize_to_tray)
+    let mut app_config = get_app_config()?;
+    app_config.last_notes_directory = config.notes_directory.clone();
+    app_config.theme = config.theme.clone();
+    app_config.minimize_to_tray = config.minimize_to_tray;
     save_app_config(&app_config)?;
 
     // Save workspace config if notes directory is set
@@ -225,6 +227,7 @@ impl From<WorkspaceConfig> for FullConfig {
             notes_directory: String::new(),
             theme: "system".to_string(),
             show_line_numbers: workspace.show_line_numbers,
+            minimize_to_tray: false,
         }
     }
 }
