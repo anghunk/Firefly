@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted, shallowRef, computed } from 'vue';
+import { ref, watch, onMounted, onUnmounted, shallowRef, computed, nextTick } from 'vue';
 import { EditorView, keymap, lineNumbers, drawSelection, highlightActiveLine, highlightActiveLineGutter } from '@codemirror/view';
 import { EditorState, Compartment } from '@codemirror/state';
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
 import { defaultHighlightStyle, syntaxHighlighting } from '@codemirror/language';
+import { invoke } from '@tauri-apps/api/core';
 import { useMarkdown } from '../../composables/useMarkdown';
 import 'github-markdown-css/github-markdown.css';
 
@@ -16,6 +17,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   save: [content: string];
+  renamed: [newTitle: string];
 }>();
 
 const editorContainer = ref<HTMLElement | null>(null);
@@ -36,12 +38,99 @@ const currentDocContent = ref(props.content);
 // Character counts
 const charCount = computed(() => currentDocContent.value.length);
 
-const renderedContent = computed(() => {
-  return renderMarkdown(currentDocContent.value);
+// Current filename (without extension)
+const currentFilename = computed(() => {
+  if (!props.notePath) return '';
+  const filename = props.notePath.split(/[/\\]/).pop() || '';
+  return filename.replace(/\.md$/, '');
 });
 
+// Rename state
+const isRenaming = ref(false);
+const newName = ref('');
+const filenameInput = ref<HTMLInputElement | null>(null);
+
+// Start renaming
+function startRename() {
+  if (!props.notePath) return;
+  newName.value = currentFilename.value;
+  isRenaming.value = true;
+  nextTick(() => {
+    filenameInput.value?.focus();
+    filenameInput.value?.select();
+  });
+}
+
+// Cancel renaming
+function cancelRename() {
+  isRenaming.value = false;
+  newName.value = '';
+}
+
+// Confirm rename
+async function confirmRename() {
+  if (!newName.value.trim() || !props.notePath) {
+    cancelRename();
+    return;
+  }
+
+  if (newName.value.trim() === currentFilename.value) {
+    cancelRename();
+    return;
+  }
+
+  try {
+    await invoke('rename_note', {
+      notePath: props.notePath,
+      newTitle: newName.value.trim(),
+    });
+    emit('renamed', newName.value.trim());
+    isRenaming.value = false;
+    newName.value = '';
+  } catch (e) {
+    console.error('重命名失败:', e);
+    cancelRename();
+  }
+}
+
+// Preview rendered content with debouncing
+const debouncedRenderContent = ref('');
+const isRenderingPreview = ref(false);
+let renderTimeout: ReturnType<typeof setTimeout> | null = null;
+
+const renderedContent = computed(() => {
+  // Only render when actually in preview mode
+  if (!isPreviewMode.value) {
+    return '';
+  }
+
+  // Use debounced value during editing, direct value when switching modes
+  return isRenderingPreview.value ? renderMarkdown(currentDocContent.value) : debouncedRenderContent.value;
+});
+
+// Debounced preview render
+function schedulePreviewRender() {
+  if (renderTimeout) {
+    clearTimeout(renderTimeout);
+  }
+
+  renderTimeout = setTimeout(() => {
+    debouncedRenderContent.value = renderMarkdown(currentDocContent.value);
+    isRenderingPreview.value = false;
+  }, 150); // Debounce preview rendering by 150ms
+}
+
 function togglePreviewMode() {
+  const wasPreview = isPreviewMode.value;
   isPreviewMode.value = !isPreviewMode.value;
+
+  // When switching to preview mode, render immediately
+  if (!wasPreview && isPreviewMode.value) {
+    debouncedRenderContent.value = renderMarkdown(currentDocContent.value);
+  } else if (wasPreview && !isPreviewMode.value) {
+    // Clear preview when switching back to edit mode to free memory
+    debouncedRenderContent.value = '';
+  }
 }
 
 // Create editor theme with default values
@@ -98,8 +187,13 @@ onMounted(() => {
   const updateListener = EditorView.updateListener.of((update) => {
     if (update.docChanged) {
       const newContent = update.state.doc.toString();
-      currentDocContent.value = newContent; // Update immediately for preview
+      currentDocContent.value = newContent;
       debouncedSave(newContent);
+      // Only schedule preview render if in preview mode
+      if (isPreviewMode.value) {
+        isRenderingPreview.value = true;
+        schedulePreviewRender();
+      }
     }
   });
 
@@ -128,7 +222,7 @@ onMounted(() => {
 
 // Update content from outside
 watch(() => props.content, (newContent) => {
-  currentDocContent.value = newContent; // Update for preview
+  currentDocContent.value = newContent;
   if (editorView.value && editorView.value.state.doc.toString() !== newContent) {
     editorView.value.dispatch({
       changes: {
@@ -137,6 +231,10 @@ watch(() => props.content, (newContent) => {
         insert: newContent,
       },
     });
+  }
+  // Update preview if in preview mode
+  if (isPreviewMode.value) {
+    debouncedRenderContent.value = renderMarkdown(newContent);
   }
 });
 
@@ -154,6 +252,9 @@ onUnmounted(() => {
   if (saveTimeout) {
     clearTimeout(saveTimeout);
   }
+  if (renderTimeout) {
+    clearTimeout(renderTimeout);
+  }
   if (editorView.value) {
     editorView.value.destroy();
   }
@@ -164,6 +265,28 @@ onUnmounted(() => {
   <div class="flex flex-col h-full">
     <!-- Status bar -->
     <div class="flex items-center justify-between px-4 h-10 border-b border-gray-200 dark:border-gray-800">
+      <div class="flex flex-1 min-w-0">
+        <!-- Display mode -->
+        <span
+          v-if="!isRenaming"
+          @click="startRename"
+          class="flex-1 text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer hover:text-blue-500 dark:hover:text-blue-400 transition-colors inline-block truncate max-w-full"
+          :title="currentFilename || '点击重命名'"
+        >
+          {{ currentFilename || '未命名' }}
+        </span>
+        <!-- Edit mode -->
+        <input
+          v-else
+          ref="filenameInput"
+          v-model="newName"
+          @blur="confirmRename"
+          @keydown.enter="confirmRename"
+          @keydown.esc="cancelRename"
+          class="flex-1 text-sm font-medium bg-transparent border-none! shadow-none! outline-none! text-gray-700 dark:text-gray-300 w-full"
+          placeholder="文件名"
+        />
+      </div>
       <button
         @click="togglePreviewMode"
         class="flex items-center gap-1 text-sm text-gray-500 cursor-pointer hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"

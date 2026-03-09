@@ -13,6 +13,16 @@ const selectedNodePath = computed(() => {
   const node = treeStore.allNodes.find(n => n.id === treeStore.selectedNodeId);
   return node?.path || '';
 });
+
+// Handle note rename
+async function handleNoteRenamed(newTitle: string) {
+  if (!selectedNodePath.value) return;
+  try {
+    await treeStore.renameNode(selectedNodePath.value, 'file', newTitle);
+  } catch (e) {
+    console.error('更新树节点失败:', e);
+  }
+}
 </script>
 
 <template>
@@ -32,6 +42,7 @@ const selectedNodePath = computed(() => {
       :show-line-numbers="settingsStore.config.showLineNumbers"
       :note-path="selectedNodePath"
       @save="(content) => noteStore.saveNote(selectedNodePath, content)"
+      @renamed="handleNoteRenamed"
     />
   </div>
 </template>

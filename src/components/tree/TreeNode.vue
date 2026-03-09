@@ -67,9 +67,7 @@ function formatDateTime(dateStr: string): string {
 }
 
 const tooltipText = computed(() => {
-  const typeLabel = isFolder.value ? '文件夹' : '文件';
-  return `${typeLabel}
-创建时间：${formatDateTime(props.node.createdAt)}
+  return `创建时间：${formatDateTime(props.node.createdAt)}
 编辑时间：${formatDateTime(props.node.updatedAt)}`;
 });
 
