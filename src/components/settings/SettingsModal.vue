@@ -9,6 +9,7 @@ import {
 } from "@phosphor-icons/vue";
 import { useSettingsStore } from "../../stores";
 import { useUpdateChecker } from "../../composables/useUpdateChecker";
+import { useToast } from "../../composables/useToast";
 import { Modal, Button, Input } from "../common";
 import * as pkg from "../../../package.json";
 
@@ -22,6 +23,7 @@ const emit = defineEmits<{
 
 const settingsStore = useSettingsStore();
 const { updateInfo, checkForUpdates } = useUpdateChecker();
+const { success, info, error } = useToast();
 
 const localConfig = ref({ ...settingsStore.config });
 const isLoading = ref(false);
@@ -69,7 +71,19 @@ async function setTheme(theme: "light" | "dark" | "system") {
 async function handleCheckUpdate() {
   isCheckingUpdate.value = true;
   try {
+    console.log('Checking for updates...');
     await checkForUpdates();
+    console.log('Update info:', updateInfo.value);
+    if (updateInfo.value.isUpdateAvailable) {
+      console.log('New version available');
+      success(`发现新版本 v${updateInfo.value.latestVersion}`);
+    } else {
+      console.log('Current is latest');
+      info("当前已是最新版本");
+    }
+  } catch (e) {
+    console.error('Check update error:', e);
+    error("检查更新失败，请稍后重试");
   } finally {
     isCheckingUpdate.value = false;
   }

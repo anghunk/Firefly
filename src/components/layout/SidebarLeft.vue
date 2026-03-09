@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from 'vue';
-import { useCategoryStore, useSettingsStore } from '../../stores';
+import { useCategoryStore, useSettingsStore, useUpdateStore } from '../../stores';
 import CategoryList from '../category/CategoryList.vue';
 import CategoryForm from '../category/CategoryForm.vue';
 import CategoryRenameModal from '../category/CategoryRenameModal.vue';
@@ -13,6 +13,7 @@ const emit = defineEmits<{
 
 const categoryStore = useCategoryStore();
 const settingsStore = useSettingsStore();
+const updateStore = useUpdateStore();
 const { openMenu, closeMenu } = useContextMenu();
 
 const MENU_ID = 'sidebar-left';
@@ -155,6 +156,16 @@ const deletingCategory = () => {
       >
         <PhGear :size="16" />
       </button>
+      <a
+        v-if="updateStore.updateInfo.isUpdateAvailable"
+        :href="updateStore.updateInfo.updateUrl"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="ml-auto px-2 py-0.5 text-xs font-medium text-yellow-600 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-900/30 rounded hover:bg-yellow-200 dark:hover:bg-yellow-900/50 transition-colors"
+        title="点击下载新版本"
+      >
+        新版本
+      </a>
     </div>
 
     <!-- Create Category Form -->

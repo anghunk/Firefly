@@ -1,21 +1,29 @@
 <script setup lang="ts">
-import { onMounted } from "vue";
+import { onMounted, watch } from "vue";
 import { AppLayout } from "./components/layout";
-import { useSettingsStore } from "./stores";
-import { useUpdateChecker } from "./composables/useUpdateChecker";
+import { ToastContainer } from "./components/common";
+import { useSettingsStore, useUpdateStore } from "./stores";
+import { useToast } from "./composables/useToast";
 
 const settingsStore = useSettingsStore();
-const { checkForUpdates } = useUpdateChecker();
+const updateStore = useUpdateStore();
+const { toasts, removeToast } = useToast();
+
+// Debug: watch toasts
+watch(toasts, (newToasts) => {
+  console.log('App.vue toasts changed:', newToasts);
+}, { deep: true });
 
 onMounted(async () => {
   await settingsStore.loadConfig();
   // Silently check for updates in the background
-  checkForUpdates();
+  updateStore.checkForUpdates();
 });
 </script>
 
 <template>
   <AppLayout />
+  <ToastContainer :toasts="toasts" @close="removeToast" />
 </template>
 
 <style>
