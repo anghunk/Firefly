@@ -7,12 +7,14 @@ export const settingsService = {
       notes_directory: string;
       theme: string;
       show_line_numbers: boolean;
+      minimize_to_tray: boolean;
     }>('get_app_config');
 
     return {
       notesDirectory: result.notes_directory,
       theme: result.theme as AppConfig['theme'],
       showLineNumbers: result.show_line_numbers,
+      minimizeToTray: result.minimize_to_tray,
     };
   },
 
@@ -22,6 +24,7 @@ export const settingsService = {
         notes_directory: config.notesDirectory,
         theme: config.theme,
         show_line_numbers: config.showLineNumbers,
+        minimize_to_tray: config.minimizeToTray,
       },
     });
   },
