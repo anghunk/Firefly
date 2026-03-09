@@ -67,7 +67,7 @@ jobs:
         run: |
           # Find NSIS installer
           INSTALLER=$(find src-tauri/target/release/bundle/nsis -name "*.exe" -type f | head -n 1)
-          RENAMED_INSTALLER="src-tauri/target/release/bundle/nsis/萤火笔记_${PACKAGE_VERSION}_x64-setup.exe"
+          RENAMED_INSTALLER="src-tauri/target/release/bundle/nsis/Firefly_${PACKAGE_VERSION}_x64-setup.exe"
           mv "$INSTALLER" "$RENAMED_INSTALLER"
           echo "installer=$RENAMED_INSTALLER" >> $GITHUB_OUTPUT
           echo "Renamed installer: $RENAMED_INSTALLER"
