@@ -33,6 +33,9 @@ const { render: renderMarkdown } = useMarkdown();
 // Store current content for preview (reactive)
 const currentDocContent = ref(props.content);
 
+// Character counts
+const charCount = computed(() => currentDocContent.value.length);
+
 const renderedContent = computed(() => {
   return renderMarkdown(currentDocContent.value);
 });
@@ -188,6 +191,11 @@ onUnmounted(() => {
     <!-- Preview -->
     <div v-show="isPreviewMode" class="flex-1 overflow-auto p-4">
       <article class="markdown-body max-w-none" v-html="renderedContent" />
+    </div>
+
+    <!-- Bottom status bar -->
+    <div class="flex items-center justify-end gap-4 px-4 h-8 border-t border-gray-200 dark:border-gray-800 text-xs text-gray-500 dark:text-gray-400">
+      <span>{{ charCount }} 字符</span>
     </div>
   </div>
 </template>

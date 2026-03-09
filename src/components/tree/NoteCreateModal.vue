@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue';
-import { useTreeStore } from '../../stores';
+import { useTreeStore, useNoteStore } from '../../stores';
 import { Modal, Button, Input } from '../common';
 
 const props = defineProps<{
@@ -14,6 +14,7 @@ const emit = defineEmits<{
 }>();
 
 const treeStore = useTreeStore();
+const noteStore = useNoteStore();
 
 const title = ref('');
 const isLoading = ref(false);
@@ -43,7 +44,10 @@ async function handleSubmit() {
 
   try {
     const node = await treeStore.createNoteInFolder(props.parentPath, title.value.trim());
+    // Select the node and load its content
     treeStore.selectNode(node.id);
+    noteStore.selectNote(node.id);
+    await noteStore.loadNoteContent(node.path);
     title.value = '';
     emit('submit');
   } catch (e) {
