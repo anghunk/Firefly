@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Transition } from 'vue';
+import { ToastItem } from '.';
 import type { Toast } from '../../composables/useToast';
 
 const props = defineProps<{
@@ -12,13 +13,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div
-    class="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none"
-    style="pointer-events: none;"
-  >
-    <div style="pointer-events: auto; color: red; font-size: 12px; margin-bottom: 4px;">
-      Debug: toasts length = {{ toasts.length }}
-    </div>
+  <div class="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none">
     <template v-for="toast in toasts" :key="toast.id">
       <Transition
         enter-active-class="transition-all duration-200 ease-out"
