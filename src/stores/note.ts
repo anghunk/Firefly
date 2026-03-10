@@ -150,6 +150,10 @@ export const useNoteStore = defineStore('note', () => {
 
   function selectNote(id: string | null) {
     selectedNoteId.value = id;
+    // Clear content when deselecting
+    if (id === null) {
+      noteContent.value = null;
+    }
   }
 
   function clearNotes() {

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from 'vue';
-import { useCategoryStore, useSettingsStore, useUpdateStore } from '../../stores';
+import { useCategoryStore, useSettingsStore, useUpdateStore, useNoteStore, useTreeStore } from '../../stores';
 import CategoryList from '../category/CategoryList.vue';
 import CategoryForm from '../category/CategoryForm.vue';
 import CategoryRenameModal from '../category/CategoryRenameModal.vue';
@@ -14,6 +14,8 @@ const emit = defineEmits<{
 const categoryStore = useCategoryStore();
 const settingsStore = useSettingsStore();
 const updateStore = useUpdateStore();
+const noteStore = useNoteStore();
+const treeStore = useTreeStore();
 const { openMenu, closeMenu } = useContextMenu();
 
 const MENU_ID = 'sidebar-left';
@@ -115,6 +117,10 @@ function handleDeleteCategory(id: string) {
 
 async function confirmDelete() {
   if (deletingCategoryId.value) {
+    // Clear note and tree store state before deleting category
+    noteStore.selectNote(null);
+    treeStore.clearTree();
+
     await categoryStore.deleteCategory(settingsStore.config.notesDirectory, deletingCategoryId.value);
     showDeleteConfirm.value = false;
     deletingCategoryId.value = null;

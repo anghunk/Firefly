@@ -200,7 +200,23 @@ const deleteMessage = computed(() => {
 
 async function confirmDelete() {
   if (nodeToDelete.value) {
-    await treeStore.deleteNode(nodeToDelete.value.path, nodeToDelete.value.type);
+    const node = nodeToDelete.value;
+    await treeStore.deleteNode(node.path, node.type);
+
+    // Clear note store if the deleted node was the selected note
+    // or if a folder containing the selected note was deleted
+    if (node.type === 'file') {
+      // If deleted file was the selected note
+      if (noteStore.selectedNoteId === node.path) {
+        noteStore.selectNote(null);
+      }
+    } else if (node.type === 'folder') {
+      // If deleted folder contained the selected note
+      if (noteStore.selectedNoteId && (noteStore.selectedNoteId.startsWith(node.path + '\\') || noteStore.selectedNoteId.startsWith(node.path + '/'))) {
+        noteStore.selectNote(null);
+      }
+    }
+
     showDeleteConfirm.value = false;
     nodeToDelete.value = null;
   }
