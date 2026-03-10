@@ -1,0 +1,251 @@
+/**
+ * Markdown 语义化样式
+ * 用于自定义 Markdown 解析器渲染的 HTML 元素
+ */
+
+/* ============ 标题 ============ */
+
+.md-heading-1 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  margin-top: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgb(229 231 235);
+}
+
+.dark .md-heading-1 {
+  border-bottom-color: rgb(55 65 81);
+  color: rgb(243 244 246);
+}
+
+.md-heading-2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  margin-top: 1.25rem;
+  padding-bottom: 0.375rem;
+  border-bottom: 1px solid rgb(229 231 235);
+}
+
+.dark .md-heading-2 {
+  border-bottom-color: rgb(55 65 81);
+  color: rgb(243 244 246);
+}
+
+.md-heading-3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  margin-top: 1rem;
+}
+
+.dark .md-heading-3 {
+  color: rgb(243 244 246);
+}
+
+.md-heading-4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.dark .md-heading-4 {
+  color: rgb(243 244 246);
+}
+
+.md-heading-5 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.375rem;
+  margin-top: 0.625rem;
+}
+
+.dark .md-heading-5 {
+  color: rgb(243 244 246);
+}
+
+.md-heading-6 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  margin-top: 0.5rem;
+}
+
+.dark .md-heading-6 {
+  color: rgb(243 244 246);
+}
+
+/* ============ 段落 ============ */
+
+.md-paragraph {
+  margin-bottom: 1rem;
+  line-height: 1.75;
+}
+
+.dark .md-paragraph {
+  color: rgb(209 213 219);
+}
+
+/* ============ 列表 ============ */
+
+.md-list-ordered,
+.md-list-unordered {
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+  padding-left: 1.5rem;
+}
+
+.md-list-ordered {
+  list-style-type: decimal;
+}
+
+.md-list-unordered {
+  list-style-type: disc;
+}
+
+.md-list-item {
+  margin-bottom: 0.375rem;
+  line-height: 1.5;
+}
+
+.dark .md-list-item {
+  color: rgb(209 213 219);
+}
+
+/* ============ 任务列表 ============ */
+
+.md-list-task {
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+  padding-left: 0;
+  list-style-type: none;
+}
+
+.md-list-item.md-task-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.375rem;
+  list-style-type: none;
+  padding: 0.25rem;
+  border-radius: 0.375rem;
+}
+
+.md-list-item.md-task-item .md-checkbox {
+  margin-top: 3px;
+}
+
+.md-checkbox {
+  margin-top: 0.125rem;
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+  accent-color: rgb(59 130 246);
+}
+
+/* ============ 代码块 ============ */
+
+.md-code-block {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  background-color: rgb(243 244 246);
+  border: 1px solid rgb(229 231 235);
+}
+
+.dark .md-code-block {
+  background-color: rgb(31 41 55);
+  border-color: rgb(55 65 81);
+}
+
+.md-code-block code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.875rem;
+  color: rgb(31 41 55);
+}
+
+.dark .md-code-block code {
+  color: rgb(229 231 235);
+}
+
+/* ============ 行内代码 ============ */
+
+.md-code-inline {
+  padding: 0.125rem 0.375rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.875rem;
+  background-color: rgb(243 244 246);
+  color: rgb(219 39 119);
+  border-radius: 0.25rem;
+}
+
+.dark .md-code-inline {
+  background-color: rgb(31 41 55);
+  color: rgb(244 114 182);
+}
+
+/* ============ 引用块 ============ */
+
+.md-blockquote {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  padding-left: 1rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-left: 4px solid rgb(59 130 246);
+  background-color: rgb(249 250 251);
+  font-style: italic;
+}
+
+.dark .md-blockquote {
+  background-color: rgba(31 41 55, 0.5);
+  color: rgb(156 163 175);
+}
+
+/* ============ 水平线 ============ */
+
+.md-horizontal-rule {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  border: none;
+  border-top: 1px solid rgb(229 231 235);
+}
+
+.dark .md-horizontal-rule {
+  border-top-color: rgb(55 65 81);
+}
+
+/* ============ 链接 ============ */
+
+.md-link {
+  color: rgb(37 99 235);
+  text-decoration: underline;
+  transition: color 0.15s ease-in-out;
+}
+
+.dark .md-link {
+  color: rgb(96 165 250);
+}
+
+.md-link:hover {
+  color: rgb(30 64 175);
+}
+
+.dark .md-link:hover {
+  color: rgb(147 197 253);
+}
+
+/* ============ 图片 ============ */
+
+.md-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}

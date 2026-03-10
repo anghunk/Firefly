@@ -5,6 +5,7 @@ import PhosphorIcons from '@phosphor-icons/vue';
 
 import '@/assets/style/style.less';
 import '@/assets/style/tailwind.css';
+import '@/assets/style/markdown.css';
 
 const app = createApp(App);
 const pinia = createPinia();

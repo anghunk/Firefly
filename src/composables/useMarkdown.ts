@@ -1,27 +1,32 @@
-import MarkdownIt from 'markdown-it';
-import taskLists from 'markdown-it-task-lists';
+/**
+ * Markdown 渲染 Composable
+ */
 
-const md = new MarkdownIt({
-  html: true,
-  linkify: true,
-  typographer: true,
-}).use(taskLists, {
-  enabled: true,
-  label: true,
-  labelAfter: false,
+import { MarkdownParser } from '../parsers/markdown';
+
+// 创建全局解析器实例
+const parser = new MarkdownParser({
+  enableHtml: true,
+  enableTaskLists: true,
+  enableLinks: true,
 });
 
 export function useMarkdown() {
   function render(content: string): string {
-    return md.render(content);
+    return parser.render(content);
   }
 
   function renderInline(content: string): string {
-    return md.renderInline(content);
+    return parser.renderInline(content);
+  }
+
+  function getParser(): MarkdownParser {
+    return parser;
   }
 
   return {
     render,
     renderInline,
+    getParser,
   };
 }

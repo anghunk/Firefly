@@ -12,6 +12,9 @@ export default defineConfig({
 		watch: {
 			ignored: ['**/src-tauri/**'],
 		},
+		hmr: {
+			overlay: false,
+		}
 	},
 	resolve: {
 		alias: {

@@ -7,7 +7,6 @@ import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
 import { defaultHighlightStyle, syntaxHighlighting } from '@codemirror/language';
 import { invoke } from '@tauri-apps/api/core';
 import { useMarkdown } from '../../composables/useMarkdown';
-import 'github-markdown-css/github-markdown.css';
 
 const props = defineProps<{
   content: string;
@@ -344,7 +343,7 @@ onUnmounted(() => {
         <span
           v-if="!isRenaming"
           @click="startRename"
-          class="flex-1 text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer hover:text-blue-500 dark:hover:text-blue-400 transition-colors inline-block truncate max-w-full"
+          class="flex-1 text-base font-medium text-gray-700 dark:text-gray-300 cursor-pointer hover:text-blue-500 dark:hover:text-blue-400 transition-colors inline-block truncate max-w-full"
           :title="currentFilename || '点击重命名'"
         >
           {{ currentFilename || '未命名' }}
@@ -387,7 +386,7 @@ onUnmounted(() => {
 
     <!-- Preview -->
     <div v-show="isPreviewMode" ref="previewContainer" class="flex-1 overflow-auto p-4">
-      <article class="markdown-body max-w-none" v-html="renderedContent" />
+      <article class="max-w-none" v-html="renderedContent" />
     </div>
 
     <!-- Bottom status bar -->
@@ -415,34 +414,5 @@ onUnmounted(() => {
   background-color: rgba(59, 130, 246, 0.3) !important;
 }
 
-/* Dark mode support for github-markdown-css */
-.dark .markdown-body {
-  color-scheme: dark;
-  --color-fg-default: #e6edf3;
-  --color-fg-muted: #8d96a0;
-  --color-fg-subtle: #6e7681;
-  --color-canvas-default: #0d1117;
-  --color-canvas-subtle: #161b22;
-  --color-border-default: #30363d;
-  --color-border-muted: #21262d;
-  --color-neutral-muted: rgba(110,118,129,0.4);
-  --color-accent-fg: #58a6ff;
-  --color-accent-emphasis: #1f6feb;
-  --color-success-fg: #3fb950;
-  --color-attention-fg: #d29922;
-  --color-danger-fg: #f85149;
-  --color-done-fg: #a371f7;
-}
 
-/* Checkbox list styling - remove bullets */
-.markdown-body li.task-list-item {
-  list-style-type: none;
-  display: flex;
-  align-items: flex-start;
-}
-
-.markdown-body li.task-list-item::marker {
-  content: '';
-  display: none;
-}
 </style>
