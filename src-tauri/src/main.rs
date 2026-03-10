@@ -109,6 +109,8 @@ fn main() {
             settings::is_valid_workspace,
             settings::get_minimize_to_tray,
             settings::set_minimize_to_tray,
+            settings::set_last_note_path,
+            settings::get_last_note_path,
         ])
         .on_menu_event(|app, event| match event.id().as_ref() {
             "quit" => {

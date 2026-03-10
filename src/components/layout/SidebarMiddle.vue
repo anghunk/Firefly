@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, watch, computed, onMounted } from 'vue';
+import { ref, watch, computed, onMounted, nextTick } from 'vue';
 import { Command } from '@tauri-apps/plugin-shell';
 import { useCategoryStore, useTreeStore, useNoteStore } from '../../stores';
+import { settingsService } from '../../services';
 import { TreeList, FolderCreateModal, TreeNodeRenameModal, NoteCreateModal } from '../tree';
 import ConfirmDialog from '../common/ConfirmDialog.vue';
 import type { TreeNode } from '../../types';
@@ -9,6 +10,9 @@ import type { TreeNode } from '../../types';
 const categoryStore = useCategoryStore();
 const treeStore = useTreeStore();
 const noteStore = useNoteStore();
+
+// Flag to track if we're restoring the last note
+let isRestoringLastNote = false;
 
 // Load expanded paths on mount
 onMounted(() => {
@@ -47,6 +51,10 @@ function clearSearch() {
 watch(() => categoryStore.selectedCategoryId, async (categoryId) => {
   if (categoryId) {
     await treeStore.fetchTree(categoryId);
+    // Try to restore the last opened note after tree is loaded
+    if (!isRestoringLastNote) {
+      await restoreLastNote();
+    }
   } else {
     treeStore.clearTree();
   }
@@ -54,8 +62,37 @@ watch(() => categoryStore.selectedCategoryId, async (categoryId) => {
   searchQuery.value = '';
 }, { immediate: true });
 
+// Restore the last opened note
+async function restoreLastNote() {
+  try {
+    const lastNotePath = await settingsService.getLastNotePath();
+    if (!lastNotePath || !categoryStore.selectedCategoryId) return;
+
+    // Check if the last note is in the current category tree
+    const lastNoteNode = treeStore.allNodes.find(n => n.path === lastNotePath && n.type === 'file');
+    if (lastNoteNode) {
+      isRestoringLastNote = true;
+      // Expand parent folders if needed
+      const pathParts = lastNotePath.split(/[/\\]/);
+      for (let i = 0; i < pathParts.length - 1; i++) {
+        const folderPath = pathParts.slice(0, i + 1).join('/');
+        if (!treeStore.expandedPaths.has(folderPath)) {
+          treeStore.toggleFolder(folderPath);
+        }
+      }
+      // Select the note
+      handleSelect(lastNoteNode.id);
+      nextTick(() => {
+        isRestoringLastNote = false;
+      });
+    }
+  } catch (e) {
+    console.error('Failed to restore last note:', e);
+  }
+}
+
 // Handle node selection
-function handleSelect(id: string) {
+async function handleSelect(id: string) {
   treeStore.selectNode(id);
   const node = treeStore.allNodes.find(n => n.id === id);
 
@@ -63,6 +100,12 @@ function handleSelect(id: string) {
   if (node?.type === 'file') {
     noteStore.selectNote(node.id);
     noteStore.loadNoteContent(node.path);
+    // Save the last opened note path
+    try {
+      await settingsService.setLastNotePath(node.path);
+    } catch (e) {
+      console.error('Failed to save last note path:', e);
+    }
   } else {
     noteStore.selectNote(null);
   }

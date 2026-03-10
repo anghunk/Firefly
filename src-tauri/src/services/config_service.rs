@@ -211,6 +211,21 @@ pub fn save_full_config(config: &FullConfig) -> Result<(), ConfigError> {
     Ok(())
 }
 
+/// Set the last opened note path
+pub fn set_last_note_path(note_path: &str) -> Result<(), ConfigError> {
+    let mut app_config = get_app_config()?;
+    app_config.last_note_path = note_path.to_string();
+    save_app_config(&app_config)
+}
+
+/// Get the last opened note path
+pub fn get_last_note_path() -> String {
+    match get_app_config() {
+        Ok(config) => config.last_note_path,
+        Err(_) => String::new(),
+    }
+}
+
 // ============ Helpers ============
 
 pub fn get_default_notes_dir() -> String {

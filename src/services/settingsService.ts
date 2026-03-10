@@ -45,4 +45,12 @@ export const settingsService = {
   async isValidWorkspace(dir: string): Promise<boolean> {
     return await invoke<boolean>('is_valid_workspace', { dir });
   },
+
+  async getLastNotePath(): Promise<string> {
+    return await invoke<string>('get_last_note_path');
+  },
+
+  async setLastNotePath(notePath: string): Promise<void> {
+    await invoke('set_last_note_path', { notePath });
+  },
 };

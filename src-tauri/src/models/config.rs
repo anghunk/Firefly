@@ -7,6 +7,9 @@ pub struct AppConfig {
     /// Last opened notes directory
     #[serde(default = "default_last_notes_directory")]
     pub last_notes_directory: String,
+    /// Last opened note path
+    #[serde(default = "default_last_note_path")]
+    pub last_note_path: String,
     /// UI theme preference (local to device)
     #[serde(default = "default_theme")]
     pub theme: String,
@@ -16,6 +19,10 @@ pub struct AppConfig {
 }
 
 fn default_last_notes_directory() -> String {
+    String::new()
+}
+
+fn default_last_note_path() -> String {
     String::new()
 }
 
@@ -31,6 +38,7 @@ impl Default for AppConfig {
     fn default() -> Self {
         Self {
             last_notes_directory: String::new(),
+            last_note_path: String::new(),
             theme: "system".to_string(),
             minimize_to_tray: true,
         }

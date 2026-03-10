@@ -64,3 +64,14 @@ pub fn set_minimize_to_tray(app: AppHandle, value: bool) -> Result<(), String> {
 pub fn is_valid_workspace(dir: String) -> bool {
     config_service::is_valid_workspace(&dir)
 }
+
+#[tauri::command]
+pub fn set_last_note_path(note_path: String) -> Result<(), String> {
+    config_service::set_last_note_path(&note_path)
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn get_last_note_path() -> String {
+    config_service::get_last_note_path()
+}
