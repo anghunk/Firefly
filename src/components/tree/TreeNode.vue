@@ -121,7 +121,7 @@ function submitRename() {
 <template>
   <div
     :class="[
-      'group flex items-center gap-1 py-2 cursor-pointer select-none',
+      'group flex items-center gap-1 py-2 cursor-pointer select-none pr-2',
       isContextMenuActive
         ? 'bg-blue-50 dark:bg-blue-900/30'
         : isSelected

@@ -1,15 +1,18 @@
 <script setup lang="ts">
-import { ref, watch, computed, onMounted, nextTick } from 'vue';
+import { ref, watch, computed, onMounted, onUnmounted, nextTick } from 'vue';
 import { Command } from '@tauri-apps/plugin-shell';
 import { useCategoryStore, useTreeStore, useNoteStore } from '../../stores';
 import { settingsService } from '../../services';
 import { TreeList, FolderCreateModal, TreeNodeRenameModal, NoteCreateModal } from '../tree';
+import { ContextMenu, ContextMenuItem } from '../common';
 import ConfirmDialog from '../common/ConfirmDialog.vue';
+import { useContextMenu } from '../../composables/useContextMenu';
 import type { TreeNode } from '../../types';
 
 const categoryStore = useCategoryStore();
 const treeStore = useTreeStore();
 const noteStore = useNoteStore();
+const { openMenu, closeMenu } = useContextMenu();
 
 // Flag to track if we're restoring the last note
 let isRestoringLastNote = false;
@@ -17,7 +20,48 @@ let isRestoringLastNote = false;
 // Load expanded paths on mount
 onMounted(() => {
   treeStore.loadExpandedPaths();
+  window.addEventListener('close-context-menu', handleCloseContextMenu);
 });
+
+onUnmounted(() => {
+  window.removeEventListener('close-context-menu', handleCloseContextMenu);
+});
+
+// Context menu state for blank area
+const MENU_ID = 'sidebar-middle-blank';
+const showBlankContextMenu = ref(false);
+const blankContextMenuX = ref(0);
+const blankContextMenuY = ref(0);
+
+function handleCloseContextMenu() {
+  showBlankContextMenu.value = false;
+  closeMenu();
+}
+
+function handleBlankContextMenu(e: MouseEvent) {
+  e.preventDefault();
+  blankContextMenuX.value = e.clientX;
+  blankContextMenuY.value = e.clientY;
+  showBlankContextMenu.value = true;
+  openMenu(MENU_ID);
+}
+
+function closeBlankContextMenu() {
+  showBlankContextMenu.value = false;
+  closeMenu();
+}
+
+function handleBlankCreateNote() {
+  createNoteParentPath.value = categoryStore.selectedCategoryId || '';
+  showCreateNoteModal.value = true;
+  closeBlankContextMenu();
+}
+
+function handleBlankCreateFolder() {
+  createFolderParentPath.value = categoryStore.selectedCategoryId || '';
+  showCreateFolderModal.value = true;
+  closeBlankContextMenu();
+}
 
 // Modal states
 const showCreateNoteModal = ref(false);
@@ -239,7 +283,7 @@ async function handleOpenInExplorer(node: TreeNode) {
     </div>
 
     <!-- Tree List -->
-    <div class="flex-1 overflow-y-auto">
+    <div class="flex-1 overflow-y-auto" @contextmenu="handleBlankContextMenu">
       <div v-if="treeStore.isLoading" class="px-3 py-4 text-xs text-gray-400 text-center">
         加载中...
       </div>
@@ -303,5 +347,22 @@ async function handleOpenInExplorer(node: TreeNode) {
       @cancel="showDeleteConfirm = false; nodeToDelete = null"
       @confirm="confirmDelete"
     />
+
+    <!-- Blank Area Context Menu -->
+    <ContextMenu
+      :is-open="showBlankContextMenu"
+      :x="blankContextMenuX"
+      :y="blankContextMenuY"
+      @close="closeBlankContextMenu"
+    >
+      <ContextMenuItem @click="handleBlankCreateNote">
+        <PhHighlighter :size="16" />
+        <span>新建笔记</span>
+      </ContextMenuItem>
+      <ContextMenuItem @click="handleBlankCreateFolder">
+        <PhFolderPlus :size="16" />
+        <span>新建文件夹</span>
+      </ContextMenuItem>
+    </ContextMenu>
   </div>
 </template>
